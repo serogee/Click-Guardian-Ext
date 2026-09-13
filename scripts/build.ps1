@@ -343,8 +343,9 @@ function New-InstallerPackage {
     $wix | ConvertTo-Json -Depth 20 | Set-Content -LiteralPath (Join-Path $installerDirectory "wix.json") -Encoding UTF8
 
     $msiPath = Join-Path $workDirectory "click-guardian-ext-v$Version-windows-$Architecture-installer.msi"
+    $goMsiOutputDirectory = Join-Path $installerDirectory "wix-output"
     Write-Step "Creating the MSI installer"
-    Invoke-Tool -Name "go-msi" -Arguments @("make", "--msi", $msiPath, "--version", $Version, "--arch", $Architecture, "--src", "templates") -WorkingDirectory $installerDirectory
+    Invoke-Tool -Name "go-msi" -Arguments @("make", "--msi", $msiPath, "--version", $Version, "--arch", $Architecture, "--src", "templates", "--out", $goMsiOutputDirectory) -WorkingDirectory $installerDirectory
     if (-not (Test-Path -LiteralPath $msiPath)) { throw "go-msi did not create the expected installer." }
     return $msiPath
 }
