@@ -270,7 +270,7 @@ func (app *Application) setupUI() {
 
 	// Settings Button (Icon only)
 	app.settingsButton = widget.NewButtonWithIcon("", theme.SettingsIcon(), func() {
-		dialogs.ShowSettingsDialog(app.window, app.config, platform.IsAutoStartEnabled(), dialogs.SettingsCallbacks{
+		dialogs.ShowSettingsDialog(app.window, app.config, platform.GetAutoStartMode(), dialogs.SettingsCallbacks{
 			OnDelayChanged: func(val int) {
 				app.config.DelayMs = val
 				app.config.Save()
@@ -287,8 +287,8 @@ func (app *Application) setupUI() {
 				app.config.MinimizeToTray = val
 				app.config.Save()
 			},
-			OnAutoStartChanged: func(val bool) {
-				app.onAutoStartChanged(val)
+			OnAutoStartChanged: func(mode platform.AutoStartMode) error {
+				return app.onAutoStartChanged(mode)
 			},
 			OnProtectedButtonsChanged: func(buttons []string) {
 				app.config.ProtectedButtons = buttons
@@ -730,21 +730,13 @@ func (app *Application) updateTrayTooltip() {
 	})
 }
 
-// onAutoStartChanged handles the auto-start checkbox state change
-func (app *Application) onAutoStartChanged(checked bool) {
-	if checked {
-		err := platform.EnableAutoStart()
-		if err != nil {
-			app.logger.Log("❌ Failed to enable auto-start: %v", err)
-		} else {
-			app.logger.Log("✅ Auto-start with Windows enabled")
-		}
-	} else {
-		err := platform.DisableAutoStart()
-		if err != nil {
-			app.logger.Log("❌ Failed to disable auto-start: %v", err)
-		} else {
-			app.logger.Log("✅ Auto-start with Windows disabled")
-		}
+// onAutoStartChanged changes the mutually exclusive Windows startup mode.
+func (app *Application) onAutoStartChanged(mode platform.AutoStartMode) error {
+	if err := platform.SetAutoStartMode(mode); err != nil {
+		app.logger.Log("Failed to set Windows startup mode to %s: %v", mode, err)
+		return fmt.Errorf("set Windows startup mode to %s: %w", mode, err)
 	}
+
+	app.logger.Log("Windows startup mode changed to %s", mode)
+	return nil
 }

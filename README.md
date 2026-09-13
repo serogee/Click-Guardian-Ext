@@ -68,9 +68,9 @@ The adaptive system ensures maximum protection against problematic mice while ma
 
 ### Auto-Start Features
 
-- **Start with Windows**: Enable "Start with Windows and auto-enable protection" to automatically launch when Windows boots
-- **Seamless Protection**: When enabled, the app starts minimized to system tray and automatically begins protection with your configured delay
-- **Perfect for Always-On Protection**: One checkbox for complete hands-off protection that starts automatically with Windows
+- **Startup Modes**: Choose Disabled, Standard, or Administrator startup in Settings
+- **Seamless Protection**: Standard and Administrator modes start minimized to the system tray and automatically enable protection with your configured delay
+- **Elevated Apps**: Administrator mode uses a highest-privilege logon task after a one-time Windows approval
 
 _Tip: Start with the default 50ms delay - it works well for most users._
 

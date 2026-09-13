@@ -38,3 +38,20 @@ func TestSingleInstanceMutex(t *testing.T) {
 	}
 	defer releaser2.Release()
 }
+
+func TestHandleAutoStartHelperIgnoresOrdinaryArguments(t *testing.T) {
+	tests := [][]string{
+		nil,
+		{},
+		{"--minimized"},
+		{"--help"},
+		{"--install-admin-startup", "extra"},
+	}
+
+	for _, args := range tests {
+		handled, _ := handleAutoStartHelper(args)
+		if handled {
+			t.Errorf("handleAutoStartHelper(%q) handled an ordinary launch", args)
+		}
+	}
+}
