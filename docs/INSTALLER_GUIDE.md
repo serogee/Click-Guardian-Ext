@@ -9,10 +9,12 @@ The shared release builder creates the Windows MSI from a staged copy of the exe
 - WiX Toolset with `candle.exe` and `light.exe` available in `PATH`
 - `go-msi`
 
-Install `go-msi` with:
+Install the repository-pinned `go-msi` tool and its locked dependencies with:
 
 ```powershell
-go install github.com/mh-cbon/go-msi@1.0.2
+Push-Location build\tools
+go install -mod=readonly tool
+Pop-Location
 ```
 
 ## Build the Installer

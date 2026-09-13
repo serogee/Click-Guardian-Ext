@@ -73,7 +73,7 @@ jobs:
       - name: Install MSI tools
         shell: pwsh
         run: |
-          choco install wixtoolset --yes --no-progress
+          choco install wixtoolset --version 3.14.1.20250415 --yes --no-progress
           if ($LASTEXITCODE -ne 0) { throw "WiX Toolset installation failed." }
           Push-Location build/tools
           try {

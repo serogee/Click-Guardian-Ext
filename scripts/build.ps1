@@ -339,8 +339,11 @@ function New-InstallerPackage {
     }
     $mainTemplate = $mainTemplate.Replace('<Product Id="*"', "<Product Id=`"$productCode`"")
     Set-Content -LiteralPath $mainTemplatePath -Value $mainTemplate -Encoding UTF8
-    if (Test-Path -LiteralPath (Join-Path $installerDirectory "LICENSE.rtf")) { $wix.license = "LICENSE.rtf" }
-    $wix | ConvertTo-Json -Depth 20 | Set-Content -LiteralPath (Join-Path $installerDirectory "wix.json") -Encoding UTF8
+    $stagedLicensePath = Join-Path $installerDirectory "LICENSE.rtf"
+    if (Test-Path -LiteralPath $stagedLicensePath) { $wix.license = $stagedLicensePath }
+    $wixJson = $wix | ConvertTo-Json -Depth 20
+    $stagedWixPath = Join-Path $installerDirectory "wix.json"
+    [IO.File]::WriteAllText($stagedWixPath, $wixJson, (New-Object Text.UTF8Encoding($false)))
 
     $msiPath = Join-Path $workDirectory "click-guardian-ext-v$Version-windows-$Architecture-installer.msi"
     $goMsiOutputDirectory = Join-Path $installerDirectory "wix-output"

@@ -1,4 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<?if $(sys.BUILDARCH)="x86"?>
+  <?define Program_Files="ProgramFilesFolder"?>
+<?elseif $(sys.BUILDARCH)="x64"?>
+  <?define Program_Files="ProgramFiles64Folder"?>
+<?else?>
+  <?error Unsupported value of sys.BUILDARCH=$(sys.BUILDARCH)?>
+<?endif?>
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
   <!-- build.ps1 replaces the automatic product code marker in its staged copy. -->
   <Product Id="*" Name="{{.Product}}" Language="1033" Version="{{.Version}}" Manufacturer="{{.Company}}" UpgradeCode="{{.UpgradeCode}}">
@@ -26,7 +33,7 @@
 
   <Fragment>
     <Directory Id="TARGETDIR" Name="SourceDir">
-      <Directory Id="ProgramFilesFolder">
+      <Directory Id="$(var.Program_Files)">
         <Directory Id="INSTALLDIR" Name="{{.Product}}" />
       </Directory>
       <Directory Id="ProgramMenuFolder" />
