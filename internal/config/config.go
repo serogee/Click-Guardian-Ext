@@ -71,7 +71,7 @@ func GetConfigPath() (string, error) {
 		return "", fmt.Errorf("failed to get user config directory: %v", err)
 	}
 
-	appConfigDir := filepath.Join(configDir, "ClickGuardian")
+	appConfigDir := filepath.Join(configDir, "ClickGuardianExt")
 	if err := os.MkdirAll(appConfigDir, 0o755); err != nil {
 		return "", fmt.Errorf("failed to create app config directory: %v", err)
 	}

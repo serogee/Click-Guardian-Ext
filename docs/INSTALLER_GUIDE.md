@@ -1,4 +1,4 @@
-# Click Guardian MSI Installer Guide
+# Click Guardian Ext MSI Installer Guide
 
 The shared release builder creates the Windows MSI from a staged copy of the executable, icon, templates, license, and installer configuration.
 
@@ -20,7 +20,7 @@ go install github.com/mh-cbon/go-msi@1.0.2
 Run a complete release build:
 
 ```powershell
-.\scripts\build.ps1 -Configuration Release -Version 1.0.6
+.\scripts\build.ps1 -Configuration Release -Version 1.0.0
 ```
 
 Or use the compatibility wrapper, which reads the default version from `build\build.conf`:
@@ -32,7 +32,7 @@ scripts\release-build.bat
 The versioned installer is created as:
 
 ```text
-dist\click-guardian-v1.0.6-windows-amd64-installer.msi
+dist\click-guardian-ext-v1.0.0-windows-amd64-installer.msi
 ```
 
 ## Staged Configuration
@@ -44,16 +44,16 @@ For each version, it:
 - Keeps the stable `upgrade-code` so Windows recognizes later versions as upgrades.
 - Derives a deterministic version-specific `product-code` and inserts it into the staged WiX template.
 - Sets the release version.
-- Stages `click-guardian.exe`, `assets/icon.ico`, the license, and `templates/` beside the generated configuration.
+- Stages `click-guardian-ext.exe`, `assets/icon.ico`, the license, and `templates/` beside the generated configuration.
 - Converts `LICENSE.txt` to the RTF form required by the WiX license dialog.
 - Runs `go-msi` entirely inside that staging directory.
 - Removes the staging directory after the build.
 
-The installer contains only the release GUI executable. It does not contain `click-guardian-dev.exe`.
+The installer contains only the release GUI executable. It does not contain `click-guardian-ext-dev.exe`.
 
 ## Signing
 
-When `SIGN_CERT_FILE` is configured, the release builder signs and verifies `click-guardian.exe` before it creates the installer. It then signs and verifies the MSI. Checksums are calculated after signing.
+When `SIGN_CERT_FILE` is configured, the release builder signs and verifies `click-guardian-ext.exe` before it creates the installer. It then signs and verifies the MSI. Checksums are calculated after signing.
 
 See [Release Build Guide](RELEASE_BUILD.md) for local and GitHub signing configuration.
 
@@ -77,7 +77,7 @@ go-msi --version
 Use this when testing the executable and portable package on a machine without WiX or `go-msi`:
 
 ```powershell
-.\scripts\build.ps1 -Configuration Release -Version 1.0.6 -SkipInstaller
+.\scripts\build.ps1 -Configuration Release -Version 1.0.0 -SkipInstaller
 ```
 
 ### Icon or source file not found

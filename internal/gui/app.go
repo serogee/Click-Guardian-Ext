@@ -64,13 +64,13 @@ type Application struct {
 
 // NewApplication creates a new GUI application
 func NewApplication() *Application {
-	a := app.New()
+	a := app.NewWithID("io.github.serogee.click-guardian-ext")
 	a.SetIcon(resources.GetAppIcon()) // Use our modern shield icon
 
 	cfg := config.LoadConfig() // Load saved config instead of default
 
 	// Set window title with version
-	windowTitle := fmt.Sprintf("Click Guardian v%s", version.GetVersionString())
+	windowTitle := fmt.Sprintf("Click Guardian Ext v%s", version.GetVersionString())
 	w := a.NewWindow(windowTitle)
 
 	// Create log display
@@ -102,7 +102,7 @@ func (app *Application) Run() {
 	app.logger.Start()
 
 	// Initialize log
-	app.logger.Log("Click Guardian application started")
+	app.logger.Log("Click Guardian Ext application started")
 	if !app.hook.IsSupported() {
 		app.logger.Log("❌ Mouse hooking not supported on this platform")
 	} else {
@@ -132,7 +132,7 @@ func (app *Application) RunMinimized() {
 	app.logger.Start()
 
 	// Initialize log
-	app.logger.Log("Click Guardian application started (minimized)")
+	app.logger.Log("Click Guardian Ext application started (minimized)")
 	if !app.hook.IsSupported() {
 		app.logger.Log("❌ Mouse hooking not supported on this platform")
 	} else {
@@ -191,7 +191,7 @@ func (app *Application) RunWithAutoProtect() {
 	app.logger.Start()
 
 	// Initialize log
-	app.logger.Log("Click Guardian application started with auto-protect")
+	app.logger.Log("Click Guardian Ext application started with auto-protect")
 	if !app.hook.IsSupported() {
 		app.logger.Log("❌ Mouse hooking not supported on this platform")
 	} else {
@@ -506,12 +506,12 @@ func (app *Application) setupSystemTray() {
 func (app *Application) onTrayReady() {
 	// Set the system tray icon
 	systray.SetIcon(resources.GetTrayIcon().Content())
-	systray.SetTitle("Click Guardian")
+	systray.SetTitle("Click Guardian Ext")
 
 	// Set initial tooltip
 	app.updateTrayTooltip()
 
-	app.trayRestore = systray.AddMenuItem("Show Click Guardian", "Restore the application window")
+	app.trayRestore = systray.AddMenuItem("Show Click Guardian Ext", "Restore the application window")
 	systray.AddSeparator()
 	app.trayQuit = systray.AddMenuItem("Quit Application", "Completely quit the application")
 
@@ -706,7 +706,7 @@ func (app *Application) handleUIUpdates() {
 				// Update tray tooltip when count changes (only if protection is active)
 				if app.isRunning {
 					blockedCount := app.hook.GetBlockedCount()
-					tooltip := fmt.Sprintf("Click Guardian - Active\nBlocked clicks: %d", blockedCount)
+					tooltip := fmt.Sprintf("Click Guardian Ext - Active\nBlocked clicks: %d", blockedCount)
 					systray.SetTooltip(tooltip)
 				}
 			}
@@ -724,10 +724,10 @@ func (app *Application) updateTrayTooltip() {
 	fyne.Do(func() {
 		if app.isRunning {
 			blockedCount := app.hook.GetBlockedCount()
-			tooltip := fmt.Sprintf("Click Guardian - Active\nBlocked clicks: %d", blockedCount)
+			tooltip := fmt.Sprintf("Click Guardian Ext - Active\nBlocked clicks: %d", blockedCount)
 			systray.SetTooltip(tooltip)
 		} else {
-			systray.SetTooltip("Click Guardian - Inactive")
+			systray.SetTooltip("Click Guardian Ext - Inactive")
 		}
 	})
 }

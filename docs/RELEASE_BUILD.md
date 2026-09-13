@@ -1,11 +1,11 @@
-# Release Build Guide
+# Click Guardian Ext Release Build Guide
 
 ## Local Release Candidate
 
 Build the same release artifacts that GitHub Actions produces:
 
 ```powershell
-.\scripts\build.ps1 -Configuration Release -Version 1.0.6 -Architecture amd64 -Clean
+.\scripts\build.ps1 -Configuration Release -Version 1.0.0 -Architecture amd64 -Clean
 ```
 
 The older command remains available as a wrapper and reads the default version from `build\build.conf`:
@@ -18,21 +18,21 @@ The shared builder runs tests, generates clean Windows resources, builds the GUI
 
 ## Release Artifacts
 
-For version `1.0.6`, the release output is:
+For version `1.0.0`, the release output is:
 
 ```text
 dist/
-|-- click-guardian.exe
-|-- click-guardian-v1.0.6-windows-amd64-portable.zip
-|-- click-guardian-v1.0.6-windows-amd64-installer.msi
+|-- click-guardian-ext.exe
+|-- click-guardian-ext-v1.0.0-windows-amd64-portable.zip
+|-- click-guardian-ext-v1.0.0-windows-amd64-installer.msi
 `-- SHA256SUMS.txt
 ```
 
-The development console executable is not distributed in a release.
+The `click-guardian-ext-dev.exe` development console executable is not distributed in a release.
 
 ## Version and Resource Data
 
-The release version must use semantic version form such as `1.0.6`. The script uses its numeric portion for Windows version resources and passes these values to the application through linker flags:
+The release version must use semantic version form such as `1.0.0`. The script uses its numeric portion for Windows version resources and passes these values to the application through linker flags:
 
 - Release version
 - Git commit
@@ -52,7 +52,7 @@ In addition to Go, GCC, and `windres`, complete release packaging requires:
 To test the release executable and portable ZIP without an MSI:
 
 ```powershell
-.\scripts\build.ps1 -Configuration Release -Version 1.0.6 -SkipInstaller -SkipSigning
+.\scripts\build.ps1 -Configuration Release -Version 1.0.0 -SkipInstaller -SkipSigning
 ```
 
 ## Signing Configuration
@@ -80,8 +80,8 @@ Signing is optional. If the certificate secret is not configured, the workflow c
 3. Create and push an annotated version tag:
 
    ```cmd
-   git tag -a v1.0.6 -m "Release version 1.0.6"
-   git push origin v1.0.6
+   git tag -a v1.0.0 -m "Release version 1.0.0"
+   git push origin v1.0.0
    ```
 
 4. `.github/workflows/release.yml` checks out the existing tag and verifies that its commit is part of `main` history.

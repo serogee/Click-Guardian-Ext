@@ -25,11 +25,11 @@ import (
 
 const (
 	registryKey             = `SOFTWARE\Microsoft\Windows\CurrentVersion\Run`
-	registryValue           = "ClickGuardian"
-	autoStartStateKey       = `SOFTWARE\ClickGuardian`
+	registryValue           = "ClickGuardianExt"
+	autoStartStateKey       = `SOFTWARE\ClickGuardianExt`
 	adminAutoStartMarker    = "AdministratorAutoStart"
 	adminAutoStartError     = "AdministratorAutoStartError"
-	administratorTaskName   = "ClickGuardian Admin Startup"
+	administratorTaskName   = "ClickGuardianExt Admin Startup"
 	shellExecuteNoCloseMask = 0x00000040
 	shellExecuteHide        = 0
 	waitForever             = 0xffffffff
@@ -290,7 +290,7 @@ func InstallAdministratorAutoStart() error {
 		return err
 	}
 
-	tempFile, err := os.CreateTemp("", "click-guardian-startup-*.xml")
+	tempFile, err := os.CreateTemp("", "click-guardian-ext-startup-*.xml")
 	if err != nil {
 		return fmt.Errorf("create temporary task definition: %w", err)
 	}
@@ -315,7 +315,7 @@ func InstallAdministratorAutoStart() error {
 	return nil
 }
 
-// RemoveAdministratorAutoStart removes only the Click Guardian elevated task.
+// RemoveAdministratorAutoStart removes only the Click Guardian Ext elevated task.
 // It is intended to be called only by the elevated helper process.
 func RemoveAdministratorAutoStart() error {
 	if task, exists, err := queryAdministratorTask(); err == nil && exists {
@@ -377,7 +377,7 @@ func buildAdministratorTaskXML(exePath, username, userSID string) ([]byte, error
 		RegistrationInfo: taskRegistrationInfo{
 			Date:        time.Now().Format(time.RFC3339),
 			Author:      username,
-			Description: "Starts Click Guardian minimized with administrator privileges at sign-in.",
+			Description: "Starts Click Guardian Ext minimized with administrator privileges at sign-in.",
 		},
 		Triggers: taskTriggers{LogonTrigger: taskLogonTrigger{
 			Enabled: true,
@@ -518,7 +518,7 @@ func decodeTaskXMLOutput(data []byte) []byte {
 func isClickGuardianCommand(command string) bool {
 	cleaned := strings.Trim(strings.TrimSpace(command), `"`)
 	base := strings.ToLower(filepath.Base(filepath.Clean(cleaned)))
-	return base == "click-guardian.exe" || base == "click-guardian-dev.exe" || base == "click-guardian-gui.exe"
+	return base == "click-guardian-ext.exe" || base == "click-guardian-ext-dev.exe"
 }
 
 func sameWindowsPath(first, second string) bool {

@@ -25,7 +25,7 @@ func ShowAboutDialog(window fyne.Window) {
     headerText.TextSize = 22
     headerText.Alignment = fyne.TextAlignCenter
 
-    titleText := canvas.NewText("Click Guardian", color.White)
+    titleText := canvas.NewText("Click Guardian Ext", color.White)
     titleText.TextStyle = fyne.TextStyle{Bold: true}
     titleText.TextSize = 20
     titleText.Alignment = fyne.TextAlignCenter
@@ -60,7 +60,7 @@ func ShowAboutDialog(window fyne.Window) {
     licenseText := widget.NewLabel("License: GNU General Public License v3.0")
     licenseText.Alignment = fyne.TextAlignCenter
 
-    githubURL, _ := url.Parse("https://github.com/ahs12/click-guardian")
+    githubURL, _ := url.Parse("https://github.com/serogee/Click-Guardian-Ext")
     githubLink := widget.NewHyperlink("GitHub Repository", githubURL)
     githubLink.Alignment = fyne.TextAlignCenter
 

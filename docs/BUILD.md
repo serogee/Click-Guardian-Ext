@@ -1,4 +1,4 @@
-# Click Guardian Build Instructions
+# Click Guardian Ext Build Instructions
 
 ## Requirements
 
@@ -35,17 +35,17 @@ The batch file is a wrapper for:
 
 It runs the tests and creates:
 
-- `dist\click-guardian.exe` - Windows GUI build without a console window.
-- `dist\click-guardian-dev.exe` - Development build with console output.
+- `dist\click-guardian-ext.exe` - Windows GUI build without a console window.
+- `dist\click-guardian-ext-dev.exe` - Development build with console output.
 
-Both files contain the Windows Explorer icon, manifest, and file metadata. The development build has the product name `Click Guardian Dev` in Windows file properties.
+Both files contain the Windows Explorer icon, manifest, and file metadata. The development build has the product name `Click Guardian Ext Dev` in Windows file properties.
 
 ## Release Command
 
 Create local release artifacts with:
 
 ```powershell
-.\scripts\build.ps1 -Configuration Release -Version 1.0.6 -Architecture amd64
+.\scripts\build.ps1 -Configuration Release -Version 1.0.0 -Architecture amd64
 ```
 
 The compatibility wrapper reads `VERSION` from `build\build.conf` when `-Version` is omitted:
@@ -56,12 +56,12 @@ scripts\release-build.bat
 
 A complete release creates:
 
-- `dist\click-guardian.exe`
-- `dist\click-guardian-v1.0.6-windows-amd64-portable.zip`
-- `dist\click-guardian-v1.0.6-windows-amd64-installer.msi`
+- `dist\click-guardian-ext.exe`
+- `dist\click-guardian-ext-v1.0.0-windows-amd64-portable.zip`
+- `dist\click-guardian-ext-v1.0.0-windows-amd64-installer.msi`
 - `dist\SHA256SUMS.txt`
 
-The release does not include `click-guardian-dev.exe`.
+The release does not include `click-guardian-ext-dev.exe`.
 
 ## Build Options
 
@@ -83,7 +83,7 @@ Examples:
 .\scripts\build.ps1 -Configuration Development -Clean
 
 # Test release packaging without local MSI or signing tools
-.\scripts\build.ps1 -Configuration Release -Version 1.0.6 -SkipInstaller -SkipSigning
+.\scripts\build.ps1 -Configuration Release -Version 1.0.0 -SkipInstaller -SkipSigning
 ```
 
 Tagged CI release builds cannot use `-SkipTests`.

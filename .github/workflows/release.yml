@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        description: Existing version tag to build, such as v1.0.6
+        description: Existing version tag to build, such as v1.0.0
         required: true
         type: string
 
@@ -95,7 +95,7 @@ jobs:
             Write-Host "No signing certificate is configured."
             exit 0
           }
-          $certificatePath = Join-Path $env:RUNNER_TEMP "click-guardian-signing.pfx"
+          $certificatePath = Join-Path $env:RUNNER_TEMP "click-guardian-ext-signing.pfx"
           [IO.File]::WriteAllBytes($certificatePath, [Convert]::FromBase64String($env:CERTIFICATE_BASE64))
           "SIGN_CERT_FILE=$certificatePath" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
           $signTool = Get-Command signtool.exe -ErrorAction SilentlyContinue
@@ -122,12 +122,12 @@ jobs:
       - name: Upload workflow artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: click-guardian-release-windows-amd64
+          name: click-guardian-ext-release-windows-amd64
           if-no-files-found: error
           path: |
-            dist/click-guardian.exe
-            dist/click-guardian-v*-windows-amd64-portable.zip
-            dist/click-guardian-v*-windows-amd64-installer.msi
+            dist/click-guardian-ext.exe
+            dist/click-guardian-ext-v*-windows-amd64-portable.zip
+            dist/click-guardian-ext-v*-windows-amd64-installer.msi
             dist/SHA256SUMS.txt
 
       - name: Create draft GitHub release
@@ -136,17 +136,17 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           $assets = @(
-            "dist/click-guardian-v$env:RELEASE_VERSION-windows-amd64-portable.zip",
-            "dist/click-guardian-v$env:RELEASE_VERSION-windows-amd64-installer.msi",
+            "dist/click-guardian-ext-v$env:RELEASE_VERSION-windows-amd64-portable.zip",
+            "dist/click-guardian-ext-v$env:RELEASE_VERSION-windows-amd64-installer.msi",
             "dist/SHA256SUMS.txt"
           )
-          gh release create $env:RELEASE_TAG @assets --draft --verify-tag --generate-notes --title "Click Guardian $env:RELEASE_TAG"
+          gh release create $env:RELEASE_TAG @assets --draft --verify-tag --generate-notes --title "Click Guardian Ext $env:RELEASE_TAG"
 
       - name: Remove signing certificate
         if: ${{ always() }}
         shell: pwsh
         run: |
-          $certificatePath = Join-Path $env:RUNNER_TEMP "click-guardian-signing.pfx"
+          $certificatePath = Join-Path $env:RUNNER_TEMP "click-guardian-ext-signing.pfx"
           if (Test-Path -LiteralPath $certificatePath) {
             Remove-Item -LiteralPath $certificatePath -Force
           }

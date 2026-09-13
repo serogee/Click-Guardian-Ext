@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <assembly xmlns="urn:schemas-microsoft-com:asm.v1" manifestVersion="1.0">
-  <assemblyIdentity version="{{MANIFEST_VERSION}}" processorArchitecture="*" name="ClickGuardian" type="win32" />
+  <assemblyIdentity version="{{MANIFEST_VERSION}}" processorArchitecture="*" name="ClickGuardianExt" type="win32" />
   <description>{{FILE_DESCRIPTION}}</description>
   <trustInfo xmlns="urn:schemas-microsoft-com:asm.v2">
     <security>

@@ -253,15 +253,15 @@ function Invoke-Signing {
 
 function New-PortablePackage {
     param([string]$ExecutablePath)
-    $packageName = "click-guardian-v$Version-windows-$Architecture"
+    $packageName = "click-guardian-ext-v$Version-windows-$Architecture"
     $packageDirectory = Join-Path $workDirectory $packageName
     New-Item -ItemType Directory -Path $packageDirectory | Out-Null
-    Copy-Item -LiteralPath $ExecutablePath -Destination (Join-Path $packageDirectory "click-guardian.exe")
+    Copy-Item -LiteralPath $ExecutablePath -Destination (Join-Path $packageDirectory "click-guardian-ext.exe")
     if (Test-Path -LiteralPath (Join-Path $projectRoot "LICENSE.txt")) {
         Copy-Item -LiteralPath (Join-Path $projectRoot "LICENSE.txt") -Destination (Join-Path $packageDirectory "LICENSE.txt")
     }
     $releaseReadme = @"
-Click Guardian v$Version
+Click Guardian Ext v$Version
 
 Prevents accidental double-clicks with configurable delay protection.
 
@@ -271,7 +271,7 @@ Build information:
 - Commit: $gitCommit
 - Built by: $buildBy
 
-Run click-guardian.exe, configure the delay, and select Start Protection.
+Run click-guardian-ext.exe, configure the delay, and select Start Protection.
 See the project documentation for Windows startup and security guidance.
 "@
     Set-Content -LiteralPath (Join-Path $packageDirectory "README.txt") -Value $releaseReadme -Encoding UTF8
@@ -320,7 +320,7 @@ function New-InstallerPackage {
 
     $installerDirectory = Join-Path $workDirectory "installer"
     New-Item -ItemType Directory -Path $installerDirectory | Out-Null
-    Copy-Item -LiteralPath $ExecutablePath -Destination (Join-Path $installerDirectory "click-guardian.exe")
+    Copy-Item -LiteralPath $ExecutablePath -Destination (Join-Path $installerDirectory "click-guardian-ext.exe")
     Copy-Item -LiteralPath (Join-Path $projectRoot "assets\icon.ico") -Destination (Join-Path $installerDirectory "icon.ico")
     Copy-Item -LiteralPath (Join-Path $projectRoot "templates") -Destination (Join-Path $installerDirectory "templates") -Recurse
     $licensePath = Join-Path $projectRoot "LICENSE.txt"
@@ -341,7 +341,7 @@ function New-InstallerPackage {
     if (Test-Path -LiteralPath (Join-Path $installerDirectory "LICENSE.rtf")) { $wix.license = "LICENSE.rtf" }
     $wix | ConvertTo-Json -Depth 20 | Set-Content -LiteralPath (Join-Path $installerDirectory "wix.json") -Encoding UTF8
 
-    $msiPath = Join-Path $workDirectory "click-guardian-v$Version-windows-$Architecture-installer.msi"
+    $msiPath = Join-Path $workDirectory "click-guardian-ext-v$Version-windows-$Architecture-installer.msi"
     Write-Step "Creating the MSI installer"
     Invoke-Tool -Name "go-msi" -Arguments @("make", "--msi", $msiPath, "--version", $Version, "--arch", $Architecture, "--src", "templates") -WorkingDirectory $installerDirectory
     if (-not (Test-Path -LiteralPath $msiPath)) { throw "go-msi did not create the expected installer." }
@@ -411,8 +411,8 @@ $buildBy = $env:GITHUB_ACTOR
 if ([string]::IsNullOrWhiteSpace($buildBy)) { $buildBy = Get-GitValue -Arguments @("config", "user.name") -Fallback $env:USERNAME }
 if ([string]::IsNullOrWhiteSpace($buildBy)) { $buildBy = "unknown" }
 $buildVersion = if ($Configuration -eq "Release") { $Version } else { "dev+$gitCommit" }
-$companyName = if ($buildConfig.ContainsKey("COMPANY_NAME")) { $buildConfig["COMPANY_NAME"] } else { "Click Guardian Project" }
-$copyright = if ($buildConfig.ContainsKey("COPYRIGHT")) { $buildConfig["COPYRIGHT"] } else { "Copyright $(Get-Date -Format yyyy) Click Guardian Project" }
+$companyName = if ($buildConfig.ContainsKey("COMPANY_NAME")) { $buildConfig["COMPANY_NAME"] } else { "Click Guardian Ext Project" }
+$copyright = if ($buildConfig.ContainsKey("COPYRIGHT")) { $buildConfig["COPYRIGHT"] } else { "Copyright $(Get-Date -Format yyyy) Click Guardian Ext Project" }
 
 if ($Configuration -eq "Release" -and -not $SkipInstaller) {
     foreach ($tool in @("go-msi", "candle", "light")) {
@@ -432,11 +432,11 @@ if ($Configuration -eq "Release" -and -not $SkipSigning -and -not [string]::IsNu
 $previousGoos = $env:GOOS
 $previousGoarch = $env:GOARCH
 $previousCgo = $env:CGO_ENABLED
-$buildMutex = New-Object -TypeName Threading.Mutex -ArgumentList @($false, "Local\ClickGuardianBuild")
+$buildMutex = New-Object -TypeName Threading.Mutex -ArgumentList @($false, "Local\ClickGuardianExtBuild")
 $mutexAcquired = $buildMutex.WaitOne(0)
 if (-not $mutexAcquired) {
     $buildMutex.Dispose()
-    throw "Another Click Guardian build is already running."
+    throw "Another Click Guardian Ext build is already running."
 }
 $env:GOOS = "windows"
 $env:GOARCH = $Architecture
@@ -452,9 +452,9 @@ try {
     if (Test-Path -LiteralPath $generatedSyso) { Write-Host "Removing stale generated resource: $generatedSyso"; Remove-Item -LiteralPath $generatedSyso -Force }
 
     if ($Clean) {
-        $cleanTargets = @((Join-Path $distDirectory "click-guardian.exe"), (Join-Path $distDirectory "click-guardian-dev.exe"))
+        $cleanTargets = @((Join-Path $distDirectory "click-guardian-ext.exe"), (Join-Path $distDirectory "click-guardian-ext-dev.exe"))
         if ($Configuration -eq "Release") {
-            $cleanTargets += @((Join-Path $distDirectory "click-guardian-v$Version-windows-$Architecture-portable.zip"), (Join-Path $distDirectory "click-guardian-v$Version-windows-$Architecture-installer.msi"), (Join-Path $distDirectory "SHA256SUMS.txt"))
+            $cleanTargets += @((Join-Path $distDirectory "click-guardian-ext-v$Version-windows-$Architecture-portable.zip"), (Join-Path $distDirectory "click-guardian-ext-v$Version-windows-$Architecture-installer.msi"), (Join-Path $distDirectory "SHA256SUMS.txt"))
         }
         foreach ($target in $cleanTargets) { if (Test-Path -LiteralPath $target) { Remove-Item -LiteralPath $target -Force } }
     }
@@ -468,14 +468,14 @@ try {
     if (-not $SkipTests) { Write-Step "Running tests"; Invoke-Tool -Name "go" -Arguments @("test", "./...") }
     else { Write-Host "Tests skipped by request." }
 
-    $guiExecutable = Build-WindowsExecutable -Filename "click-guardian.exe" -ProductName "Click Guardian" -Description "Click Guardian - Double-Click Protection" -Subsystem "GUI"
+    $guiExecutable = Build-WindowsExecutable -Filename "click-guardian-ext.exe" -ProductName "Click Guardian Ext" -Description "Click Guardian Ext - Double-Click Protection" -Subsystem "GUI"
     if ($Configuration -eq "Development") {
-        $developmentExecutable = Build-WindowsExecutable -Filename "click-guardian-dev.exe" -ProductName "Click Guardian Dev" -Description "Click Guardian - Development Build" -Subsystem "Console"
-        Copy-Item -LiteralPath $guiExecutable -Destination (Join-Path $distDirectory "click-guardian.exe") -Force
-        Copy-Item -LiteralPath $developmentExecutable -Destination (Join-Path $distDirectory "click-guardian-dev.exe") -Force
+        $developmentExecutable = Build-WindowsExecutable -Filename "click-guardian-ext-dev.exe" -ProductName "Click Guardian Ext Dev" -Description "Click Guardian Ext - Development Build" -Subsystem "Console"
+        Copy-Item -LiteralPath $guiExecutable -Destination (Join-Path $distDirectory "click-guardian-ext.exe") -Force
+        Copy-Item -LiteralPath $developmentExecutable -Destination (Join-Path $distDirectory "click-guardian-ext-dev.exe") -Force
         Write-Host "Development artifacts:" -ForegroundColor Green
-        Write-Host "  dist\click-guardian.exe"
-        Write-Host "  dist\click-guardian-dev.exe"
+        Write-Host "  dist\click-guardian-ext.exe"
+        Write-Host "  dist\click-guardian-ext-dev.exe"
     }
     else {
         Invoke-Signing -Path $guiExecutable
@@ -486,12 +486,12 @@ try {
         if ($null -ne $msiPath) { $releaseFiles += $msiPath }
         $checksumPath = New-ChecksumFile -Paths $releaseFiles
 
-        Copy-Item -LiteralPath $guiExecutable -Destination (Join-Path $distDirectory "click-guardian.exe") -Force
+        Copy-Item -LiteralPath $guiExecutable -Destination (Join-Path $distDirectory "click-guardian-ext.exe") -Force
         foreach ($releaseFile in ($releaseFiles + $checksumPath)) {
             Copy-Item -LiteralPath $releaseFile -Destination (Join-Path $distDirectory (Split-Path -Leaf $releaseFile)) -Force
         }
         Write-Host "Release artifacts:" -ForegroundColor Green
-        Write-Host "  dist\click-guardian.exe"
+        Write-Host "  dist\click-guardian-ext.exe"
         foreach ($releaseFile in ($releaseFiles + $checksumPath)) { Write-Host "  dist\$(Split-Path -Leaf $releaseFile)" }
     }
 }

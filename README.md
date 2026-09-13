@@ -4,10 +4,10 @@
 <table align="center" border="0" cellpadding="0" cellspacing="0" style="border-collapse: collapse; border: none; margin: 0 auto;">
   <tr>
     <td style="border: none; padding: 0;">
-      <img src="assets/icon-modern-shield.svg" alt="Click Guardian Logo" width="64" height="64">
+      <img src="assets/icon-modern-shield.svg" alt="Click Guardian Ext Logo" width="64" height="64">
     </td>
     <td style="padding-left: 10px; vertical-align: middle; font-size: 28px; font-weight: bold; border: none; padding: 0;">
-      Click Guardian
+      Click Guardian Ext
     </td>
   </tr>
 </table>
@@ -15,17 +15,17 @@
 ---
 
 <p align="center">
-  <a href="https://github.com/AHS12/click-guardian/releases">
-    <img src="https://img.shields.io/github/downloads/AHS12/click-guardian/total" alt="Downloads">
+  <a href="https://github.com/serogee/Click-Guardian-Ext/releases">
+    <img src="https://img.shields.io/github/downloads/serogee/Click-Guardian-Ext/total" alt="Downloads">
   </a>
-  <a href="https://github.com/AHS12/click-guardian/stargazers">
-    <img src="https://img.shields.io/github/stars/AHS12/click-guardian" alt="Stars">
+  <a href="https://github.com/serogee/Click-Guardian-Ext/stargazers">
+    <img src="https://img.shields.io/github/stars/serogee/Click-Guardian-Ext" alt="Stars">
   </a>
-  <a href="https://github.com/AHS12/click-guardian/releases">
-    <img src="https://img.shields.io/github/v/release/AHS12/click-guardian" alt="Latest Release">
+  <a href="https://github.com/serogee/Click-Guardian-Ext/releases">
+    <img src="https://img.shields.io/github/v/release/serogee/Click-Guardian-Ext" alt="Latest Release">
   </a>
-  <a href="https://github.com/AHS12/click-guardian/actions/workflows/windows_build.yml">
-    <img src="https://github.com/AHS12/click-guardian/actions/workflows/windows_build.yml/badge.svg" alt="Build Status">
+  <a href="https://github.com/serogee/Click-Guardian-Ext/actions/workflows/windows_build.yml">
+    <img src="https://github.com/serogee/Click-Guardian-Ext/actions/workflows/windows_build.yml/badge.svg" alt="Build Status">
   </a>
 </p>
 
@@ -34,8 +34,8 @@
 </p>
 
 <p align="center">
-  <img src="image.png" alt="Click Guardian Screenshot" width="300" style="display:inline-block; margin-right:10px;">
-  <img src="image1.png" alt="Click Guardian Screenshot" width="300" style="display:inline-block;">
+  <img src="image.png" alt="Click Guardian Ext Screenshot" width="300" style="display:inline-block; margin-right:10px;">
+  <img src="image1.png" alt="Click Guardian Ext Screenshot" width="300" style="display:inline-block;">
 </p>
 
 ## Features
@@ -81,12 +81,12 @@ _Tip: Start with the default 50ms delay - it works well for most users._
 
 ### Download Release
 
-**Official releases with proper versioning, code signing, and Windows integration:**
+**Fork releases with proper versioning, optional code signing, and Windows integration:**
 
 1. Go to [Releases](../../releases) page
-2. Download the latest portable package `click-guardian-v*-windows-amd64-portable.zip`
-3. Extract and run `click-guardian.exe`
-4. Or install the versioned MSI package `click-guardian-v*-windows-amd64-installer.msi`
+2. Download the latest portable package `click-guardian-ext-v*-windows-amd64-portable.zip`
+3. Extract and run `click-guardian-ext.exe`
+4. Or install the versioned MSI package `click-guardian-ext-v*-windows-amd64-installer.msi`
 
 ### Build from Source
 
@@ -99,7 +99,7 @@ Development and release builds use the same PowerShell build engine, which provi
 
 **Quick development build:**
 
-Run `scripts\build.bat`. It tests the project, embeds the Windows icon and metadata, and creates `dist\click-guardian.exe` for normal GUI use plus `dist\click-guardian-dev.exe` for console debugging.
+Run `scripts\build.bat`. It tests the project, embeds the Windows icon and metadata, and creates `dist\click-guardian-ext.exe` for normal GUI use plus `dist\click-guardian-ext-dev.exe` for console debugging.
 
 Tagged releases use the same build path to create a portable ZIP, MSI, and checksum file before GitHub creates a draft release. See the [**Build Instructions**](docs/BUILD.md), [**Release Build Guide**](docs/RELEASE_BUILD.md), and [**Development Guide**](docs/DEVELOPMENT.md).
 
@@ -126,7 +126,7 @@ This application uses low-level mouse hooks that may be detected by anti-cheat s
 
 ### Recommendations for Gamers:
 
-1. **Stop Protection Before Gaming**: Always disable Click Guardian before launching multiplayer games
+1. **Stop Protection Before Gaming**: Always disable Click Guardian Ext before launching multiplayer games
 2. **Exit Completely**: Use "Quit Application" from the system tray rather than just minimizing
 3. **Test in Single Player**: If unsure, test with single-player games first
 4. **Create Gaming Profile**: Consider using Windows Task Scheduler to automatically stop the service during gaming hours
@@ -139,7 +139,7 @@ Anti-cheat systems flag applications that:
 - Block or modify mouse input events
 - Monitor global system activity
 
-While Click Guardian is legitimate accessibility software, its technical methods are similar to those used by cheating software.
+While Click Guardian Ext is legitimate accessibility software, its technical methods are similar to those used by cheating software.
 
 **We are not responsible for any account bans or penalties resulting from anti-cheat detection. Use at your own risk with online games.**
 

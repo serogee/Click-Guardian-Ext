@@ -48,8 +48,8 @@ jobs:
       - name: Upload development artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: click-guardian-development-windows-amd64
+          name: click-guardian-ext-development-windows-amd64
           if-no-files-found: error
           path: |
-            dist/click-guardian.exe
-            dist/click-guardian-dev.exe
+            dist/click-guardian-ext.exe
+            dist/click-guardian-ext-dev.exe
