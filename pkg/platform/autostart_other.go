@@ -26,6 +26,11 @@ func GetAutoStartMode() AutoStartMode {
 	return AutoStartDisabled
 }
 
+// GetConfiguredAutoStartMode returns the locally recorded startup mode.
+func GetConfiguredAutoStartMode() AutoStartMode {
+	return AutoStartDisabled
+}
+
 // SetAutoStartMode changes how the application starts with the system.
 func SetAutoStartMode(mode AutoStartMode) error {
 	if mode == AutoStartDisabled {
@@ -48,3 +53,6 @@ func RemoveAdministratorAutoStart() error {
 func RepairAdministratorAutoStart() error {
 	return nil
 }
+
+// RecordAutoStartHelperError has no work to do outside Windows.
+func RecordAutoStartHelperError(err error) {}

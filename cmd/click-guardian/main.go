@@ -107,6 +107,7 @@ func handleAutoStartHelper(args []string) (bool, int) {
 	if err == nil {
 		return true, platform.AutoStartHelperSuccessExitCode
 	}
+	platform.RecordAutoStartHelperError(err)
 	if errors.Is(err, platform.ErrAutoStartConflict) {
 		return true, platform.AutoStartHelperConflictExitCode
 	}

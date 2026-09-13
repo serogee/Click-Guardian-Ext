@@ -268,65 +268,67 @@ func (app *Application) setupUI() {
 		delayValueLabel.SetText(fmt.Sprintf("%d ms", int(val)))
 	}
 
+	settingsCallbacks := dialogs.SettingsCallbacks{
+		OnDelayChanged: func(val int) {
+			app.config.DelayMs = val
+			app.config.Save()
+			if app.delaySlider != nil {
+				app.delaySlider.Value = float64(val)
+				app.delaySlider.Refresh()
+			}
+			if delayValueLabel != nil {
+				delayValueLabel.SetText(fmt.Sprintf("%d ms", val))
+			}
+		},
+		OnMinimizeToTrayChanged: func(val bool) {
+			app.minimizeToTrayEnabled = val
+			app.config.MinimizeToTray = val
+			app.config.Save()
+		},
+		OnAutoStartChanged: func(mode platform.AutoStartMode) error {
+			return app.onAutoStartChanged(mode)
+		},
+		OnProtectedButtonsChanged: func(buttons []string) {
+			app.config.ProtectedButtons = buttons
+			app.config.Save()
+			app.logger.Log("✅ Mouse button protection updated: %v", buttons)
+		},
+		OnDragFixChanged: func(val bool) {
+			app.config.DragFix = val
+			app.config.Save()
+			app.logger.Log("Settings updated: Drag Fix = %v", val)
+			// Update hook if active
+			if app.isRunning {
+				if wh, ok := app.hook.(*hooks.WindowsHook); ok {
+					wh.SetDragFix(app.config.DragFix, app.config.DragFixThreshold, app.config.PauseDuration)
+				}
+			}
+		},
+		OnDragFixThresholdChanged: func(val int) {
+			app.config.DragFixThreshold = val
+			app.config.Save()
+			// Update hook if active
+			if app.isRunning {
+				if wh, ok := app.hook.(*hooks.WindowsHook); ok {
+					wh.SetDragFix(app.config.DragFix, app.config.DragFixThreshold, app.config.PauseDuration)
+				}
+			}
+		},
+		OnPauseDurationChanged: func(val int) {
+			app.config.PauseDuration = val
+			app.config.Save()
+			// Update hook if active
+			if app.isRunning {
+				if wh, ok := app.hook.(*hooks.WindowsHook); ok {
+					wh.SetDragFix(app.config.DragFix, app.config.DragFixThreshold, app.config.PauseDuration)
+				}
+			}
+		},
+	}
+
 	// Settings Button (Icon only)
 	app.settingsButton = widget.NewButtonWithIcon("", theme.SettingsIcon(), func() {
-		dialogs.ShowSettingsDialog(app.window, app.config, platform.GetAutoStartMode(), dialogs.SettingsCallbacks{
-			OnDelayChanged: func(val int) {
-				app.config.DelayMs = val
-				app.config.Save()
-				if app.delaySlider != nil {
-					app.delaySlider.Value = float64(val)
-					app.delaySlider.Refresh()
-				}
-				if delayValueLabel != nil {
-					delayValueLabel.SetText(fmt.Sprintf("%d ms", val))
-				}
-			},
-			OnMinimizeToTrayChanged: func(val bool) {
-				app.minimizeToTrayEnabled = val
-				app.config.MinimizeToTray = val
-				app.config.Save()
-			},
-			OnAutoStartChanged: func(mode platform.AutoStartMode) error {
-				return app.onAutoStartChanged(mode)
-			},
-			OnProtectedButtonsChanged: func(buttons []string) {
-				app.config.ProtectedButtons = buttons
-				app.config.Save()
-				app.logger.Log("✅ Mouse button protection updated: %v", buttons)
-			},
-			OnDragFixChanged: func(val bool) {
-				app.config.DragFix = val
-				app.config.Save()
-				app.logger.Log("Settings updated: Drag Fix = %v", val)
-				// Update hook if active
-				if app.isRunning {
-					if wh, ok := app.hook.(*hooks.WindowsHook); ok {
-						wh.SetDragFix(app.config.DragFix, app.config.DragFixThreshold, app.config.PauseDuration)
-					}
-				}
-			},
-			OnDragFixThresholdChanged: func(val int) {
-				app.config.DragFixThreshold = val
-				app.config.Save()
-				// Update hook if active
-				if app.isRunning {
-					if wh, ok := app.hook.(*hooks.WindowsHook); ok {
-						wh.SetDragFix(app.config.DragFix, app.config.DragFixThreshold, app.config.PauseDuration)
-					}
-				}
-			},
-			OnPauseDurationChanged: func(val int) {
-				app.config.PauseDuration = val
-				app.config.Save()
-				// Update hook if active
-				if app.isRunning {
-					if wh, ok := app.hook.(*hooks.WindowsHook); ok {
-						wh.SetDragFix(app.config.DragFix, app.config.DragFixThreshold, app.config.PauseDuration)
-					}
-				}
-			},
-		})
+		dialogs.ShowSettingsDialog(app.window, app.config, platform.GetConfiguredAutoStartMode(), settingsCallbacks)
 	})
 	app.settingsButton.Importance = widget.LowImportance // Subtle but accessible
 

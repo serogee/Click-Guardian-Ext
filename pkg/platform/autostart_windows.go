@@ -4,6 +4,7 @@ package platform
 
 import (
 	"bytes"
+	"context"
 	"encoding/binary"
 	"encoding/xml"
 	"fmt"
@@ -27,10 +28,13 @@ const (
 	registryValue           = "ClickGuardian"
 	autoStartStateKey       = `SOFTWARE\ClickGuardian`
 	adminAutoStartMarker    = "AdministratorAutoStart"
+	adminAutoStartError     = "AdministratorAutoStartError"
 	administratorTaskName   = "ClickGuardian Admin Startup"
 	shellExecuteNoCloseMask = 0x00000040
 	shellExecuteHide        = 0
 	waitForever             = 0xffffffff
+	taskQueryTimeout        = 3 * time.Second
+	taskChangeTimeout       = 15 * time.Second
 )
 
 var (
@@ -192,6 +196,18 @@ func GetAutoStartMode() AutoStartMode {
 	return AutoStartDisabled
 }
 
+// GetConfiguredAutoStartMode returns the locally recorded startup mode without
+// starting a child process. Use it when the UI must respond immediately.
+func GetConfiguredAutoStartMode() AutoStartMode {
+	if hasAdministratorMarker() {
+		return AutoStartAdministrator
+	}
+	if IsAutoStartEnabled() {
+		return AutoStartStandard
+	}
+	return AutoStartDisabled
+}
+
 // SetAutoStartMode changes startup mode transactionally where possible.
 func SetAutoStartMode(mode AutoStartMode) error {
 	currentMode := GetAutoStartMode()
@@ -289,7 +305,7 @@ func InstallAdministratorAutoStart() error {
 		return fmt.Errorf("close temporary task definition: %w", err)
 	}
 
-	output, err := exec.Command("schtasks.exe", "/Create", "/TN", administratorTaskName, "/XML", tempPath, "/F").CombinedOutput()
+	output, err := runHiddenCommand(taskChangeTimeout, "schtasks.exe", "/Create", "/TN", administratorTaskName, "/XML", tempPath, "/F")
 	if err != nil {
 		return fmt.Errorf("register administrator startup task: %w (%s)", err, strings.TrimSpace(string(output)))
 	}
@@ -306,7 +322,7 @@ func RemoveAdministratorAutoStart() error {
 		if !isClickGuardianCommand(task.Actions.Exec.Command) {
 			return ErrAutoStartConflict
 		}
-		output, deleteErr := exec.Command("schtasks.exe", "/Delete", "/TN", administratorTaskName, "/F").CombinedOutput()
+		output, deleteErr := runHiddenCommand(taskChangeTimeout, "schtasks.exe", "/Delete", "/TN", administratorTaskName, "/F")
 		if deleteErr != nil {
 			return fmt.Errorf("remove administrator startup task: %w (%s)", deleteErr, strings.TrimSpace(string(output)))
 		}
@@ -406,11 +422,28 @@ func buildAdministratorTaskXML(exePath, username, userSID string) ([]byte, error
 	if err != nil {
 		return nil, fmt.Errorf("build administrator task definition: %w", err)
 	}
-	return append([]byte(xml.Header), data...), nil
+
+	// schtasks.exe imports task definitions through the Windows XML parser,
+	// which expects the file bytes to match the UTF-16 declaration used by
+	// Task Scheduler exports. A UTF-8 declaration can fail with "unable to
+	// switch the encoding" on otherwise valid task XML.
+	document := "<?xml version=\"1.0\" encoding=\"UTF-16\"?>\r\n" + string(data)
+	return encodeUTF16LE(document), nil
+}
+
+func encodeUTF16LE(value string) []byte {
+	units := utf16.Encode([]rune(value))
+	encoded := make([]byte, 2+len(units)*2)
+	encoded[0] = 0xff
+	encoded[1] = 0xfe
+	for index, unit := range units {
+		binary.LittleEndian.PutUint16(encoded[2+index*2:], unit)
+	}
+	return encoded
 }
 
 func queryAdministratorTask() (*queriedTask, bool, error) {
-	output, err := exec.Command("schtasks.exe", "/Query", "/TN", administratorTaskName, "/XML").CombinedOutput()
+	output, err := runHiddenCommand(taskQueryTimeout, "schtasks.exe", "/Query", "/TN", administratorTaskName, "/XML")
 	if err != nil {
 		return nil, false, fmt.Errorf("query administrator startup task: %w (%s)", err, strings.TrimSpace(string(output)))
 	}
@@ -420,6 +453,27 @@ func queryAdministratorTask() (*queriedTask, bool, error) {
 		return nil, false, err
 	}
 	return task, true, nil
+}
+
+func runHiddenCommand(timeout time.Duration, name string, args ...string) ([]byte, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	defer cancel()
+
+	command := newHiddenCommandContext(ctx, name, args...)
+	output, err := command.CombinedOutput()
+	if ctx.Err() != nil {
+		return output, fmt.Errorf("%s timed out after %s: %w", filepath.Base(name), timeout, ctx.Err())
+	}
+	return output, err
+}
+
+func newHiddenCommandContext(ctx context.Context, name string, args ...string) *exec.Cmd {
+	command := exec.CommandContext(ctx, name, args...)
+	command.SysProcAttr = &syscall.SysProcAttr{
+		HideWindow:    true,
+		CreationFlags: windows.CREATE_NO_WINDOW,
+	}
+	return command
 }
 
 func parseQueriedTask(output []byte) (*queriedTask, error) {
@@ -506,6 +560,8 @@ func setAdministratorMarker(enabled bool) error {
 }
 
 func runElevatedAutoStartHelper(argument string) error {
+	_ = recordAutoStartHelperError(nil)
+
 	exePath, err := os.Executable()
 	if err != nil {
 		return fmt.Errorf("get executable path: %w", err)
@@ -564,6 +620,45 @@ func runElevatedAutoStartHelper(argument string) error {
 	case AutoStartHelperConflictExitCode:
 		return ErrAutoStartConflict
 	default:
+		if message := consumeAutoStartHelperError(); message != "" {
+			return fmt.Errorf("administrator startup helper: %s", message)
+		}
 		return fmt.Errorf("administrator startup helper failed with exit code %d", exitCode)
 	}
+}
+
+// RecordAutoStartHelperError passes an elevated helper error back to the GUI process.
+func RecordAutoStartHelperError(err error) {
+	_ = recordAutoStartHelperError(err)
+}
+
+func recordAutoStartHelperError(helperErr error) error {
+	key, _, err := registry.CreateKey(registry.CURRENT_USER, autoStartStateKey, registry.SET_VALUE)
+	if err != nil {
+		return err
+	}
+	defer key.Close()
+
+	if helperErr != nil {
+		return key.SetStringValue(adminAutoStartError, helperErr.Error())
+	}
+	if err := key.DeleteValue(adminAutoStartError); err != nil && err != registry.ErrNotExist {
+		return err
+	}
+	return nil
+}
+
+func consumeAutoStartHelperError() string {
+	key, err := registry.OpenKey(registry.CURRENT_USER, autoStartStateKey, registry.QUERY_VALUE|registry.SET_VALUE)
+	if err != nil {
+		return ""
+	}
+	defer key.Close()
+
+	message, _, err := key.GetStringValue(adminAutoStartError)
+	if err != nil {
+		return ""
+	}
+	_ = key.DeleteValue(adminAutoStartError)
+	return strings.TrimSpace(message)
 }

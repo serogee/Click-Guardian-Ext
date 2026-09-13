@@ -3,11 +3,19 @@
 package platform
 
 import (
+	"bytes"
+	"context"
 	"encoding/binary"
 	"encoding/xml"
+	"errors"
+	"io"
+	"os"
 	"strings"
 	"testing"
+	"time"
 	"unicode/utf16"
+
+	"golang.org/x/sys/windows"
 )
 
 func TestBuildAdministratorTaskXML(t *testing.T) {
@@ -17,8 +25,21 @@ func TestBuildAdministratorTaskXML(t *testing.T) {
 		t.Fatalf("buildAdministratorTaskXML returned an error: %v", err)
 	}
 
+	if len(data) < 2 || data[0] != 0xff || data[1] != 0xfe {
+		t.Fatal("generated task XML does not have a UTF-16LE byte-order mark")
+	}
+
+	decoded := decodeTaskXMLOutput(data)
+	if !bytes.Contains(decoded, []byte(`encoding="UTF-16"`)) {
+		t.Fatal("generated task XML does not declare UTF-16")
+	}
+
 	var task scheduledTask
-	if err := xml.Unmarshal(data, &task); err != nil {
+	decoder := xml.NewDecoder(bytes.NewReader(decoded))
+	decoder.CharsetReader = func(_ string, input io.Reader) (io.Reader, error) {
+		return input, nil
+	}
+	if err := decoder.Decode(&task); err != nil {
 		t.Fatalf("generated task XML is invalid: %v", err)
 	}
 
@@ -43,8 +64,38 @@ func TestBuildAdministratorTaskXML(t *testing.T) {
 	if task.Actions.Exec.Arguments != "--minimized" {
 		t.Errorf("Arguments = %q, want --minimized", task.Actions.Exec.Arguments)
 	}
-	if !strings.Contains(string(data), "Click &amp; Guardian") {
+	if !strings.Contains(string(decoded), "Click &amp; Guardian") {
 		t.Error("generated task XML did not escape the executable path")
+	}
+}
+
+func TestNewHiddenCommandContextSuppressesConsoleWindow(t *testing.T) {
+	command := newHiddenCommandContext(context.Background(), "schtasks.exe", "/Query")
+	if command.SysProcAttr == nil {
+		t.Fatal("SysProcAttr is nil")
+	}
+	if !command.SysProcAttr.HideWindow {
+		t.Error("HideWindow is false")
+	}
+	if command.SysProcAttr.CreationFlags&windows.CREATE_NO_WINDOW == 0 {
+		t.Error("CREATE_NO_WINDOW is not set")
+	}
+}
+
+func TestRunHiddenCommandTimesOut(t *testing.T) {
+	if os.Getenv("CLICK_GUARDIAN_TIMEOUT_HELPER") == "1" {
+		time.Sleep(time.Second)
+		return
+	}
+
+	t.Setenv("CLICK_GUARDIAN_TIMEOUT_HELPER", "1")
+	started := time.Now()
+	_, err := runHiddenCommand(50*time.Millisecond, os.Args[0], "-test.run=TestRunHiddenCommandTimesOut")
+	if !errors.Is(err, context.DeadlineExceeded) {
+		t.Fatalf("runHiddenCommand error = %v, want context deadline exceeded", err)
+	}
+	if elapsed := time.Since(started); elapsed > time.Second {
+		t.Errorf("runHiddenCommand returned after %s, want no more than 1s", elapsed)
 	}
 }
 
