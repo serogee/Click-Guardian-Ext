@@ -39,6 +39,7 @@ function Invoke-Tool {
     )
     Push-Location -LiteralPath $WorkingDirectory
     try {
+        $global:LASTEXITCODE = 0
         & $Name @Arguments | ForEach-Object { Write-Host $_ }
         $exitCode = $LASTEXITCODE
         if ($exitCode -ne 0) {
@@ -382,6 +383,7 @@ foreach ($requiredFile in @($resourceTemplate, $manifestTemplate, $applicationIc
 foreach ($tool in @("go", "gcc", "windres")) {
     if (-not (Get-Command $tool -ErrorAction SilentlyContinue)) { throw "$tool is required and was not found in PATH." }
 }
+$global:LASTEXITCODE = 0
 $gccTarget = (& gcc -dumpmachine 2>$null | Select-Object -First 1)
 if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace($gccTarget)) { throw "Unable to identify the GCC target architecture." }
 if ($Architecture -eq "amd64" -and $gccTarget -notmatch 'x86_64|amd64') { throw "GCC target '$gccTarget' cannot build amd64 artifacts." }
