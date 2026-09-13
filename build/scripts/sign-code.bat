@@ -10,8 +10,8 @@ if "%1"=="" (
     echo Usage: sign-code.bat ^<executable^> [certificate_file] [password]
     echo.
     echo Examples:
-    echo   sign-code.bat dist\click-guardian-gui.exe
-    echo   sign-code.bat dist\click-guardian-gui.exe mycert.pfx mypassword
+    echo   sign-code.bat dist\click-guardian.exe
+    echo   sign-code.bat dist\click-guardian.exe mycert.pfx mypassword
     echo.
     exit /b 1
 )

@@ -518,7 +518,7 @@ func decodeTaskXMLOutput(data []byte) []byte {
 func isClickGuardianCommand(command string) bool {
 	cleaned := strings.Trim(strings.TrimSpace(command), `"`)
 	base := strings.ToLower(filepath.Base(filepath.Clean(cleaned)))
-	return base == "click-guardian.exe" || base == "click-guardian-gui.exe"
+	return base == "click-guardian.exe" || base == "click-guardian-dev.exe" || base == "click-guardian-gui.exe"
 }
 
 func sameWindowsPath(first, second string) bool {

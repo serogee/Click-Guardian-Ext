@@ -77,18 +77,18 @@ jobs:
         shell: cmd
         run: |
           echo Building GUI version...
-          go build -v -ldflags "-s -w -H=windowsgui" -o dist\click-guardian-gui.exe .\cmd\click-guardian
+          go build -v -ldflags "-s -w -H=windowsgui" -o dist\click-guardian.exe .\cmd\click-guardian
           if %ERRORLEVEL% EQU 0 (
             echo ✅ GUI build successful!
           ) else (
             echo ❌ GUI build failed with error code %ERRORLEVEL%!
           )
 
-      - name: Build console version
+      - name: Build development console version
         shell: cmd
         run: |
-          echo Building console version...
-          go build -v -ldflags "-s -w" -o dist\click-guardian.exe .\cmd\click-guardian
+          echo Building development console version...
+          go build -v -ldflags "-s -w" -o dist\click-guardian-dev.exe .\cmd\click-guardian
           if %ERRORLEVEL% EQU 0 (
             echo ✅ Console build successful!
           ) else (
@@ -99,12 +99,12 @@ jobs:
       - name: Check if EXE was generated
         shell: cmd
         run: |
-          if not exist dist\click-guardian-gui.exe (
+          if not exist dist\click-guardian.exe (
             echo "❌ GUI EXE not found!"
             exit /b 1
           )
-          if not exist dist\click-guardian.exe (
-            echo "❌ Console EXE not found!"
+          if not exist dist\click-guardian-dev.exe (
+            echo "❌ Development console EXE not found!"
             exit /b 1
           )
           echo "✅ Both EXE files found."

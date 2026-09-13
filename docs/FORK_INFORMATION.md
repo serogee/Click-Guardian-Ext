@@ -59,6 +59,12 @@ Task Scheduler commands:
 
 The administrator task definition is written as UTF-16LE with a byte-order mark and a matching `UTF-16` XML declaration. This format prevents the Windows Task Scheduler error `unable to switch the encoding`.
 
+### Development build names
+
+The regular build scripts use the end-user name `click-guardian.exe` for the Windows GUI application. The console-enabled development build is named `click-guardian-dev.exe`, making it clear which executable is intended for debugging. This replaces the previous local-build names, where the GUI executable was `click-guardian-gui.exe` and the console executable was `click-guardian.exe`.
+
+Existing administrator startup tasks that point to the former `click-guardian-gui.exe` name remain recognized so they can be repaired, replaced, or removed safely.
+
 ### Documentation and tests
 
 The README and user guide describe the new startup modes. Automated tests cover:

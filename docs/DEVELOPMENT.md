@@ -142,7 +142,7 @@ If you encounter build issues, ensure you are using the **MinGW 64-bit** termina
    # Quick development build and run
    scripts\dev.bat
 
-   #dev build
+   # Local GUI and development builds
    scripts\build.bat
 
    # Production build
@@ -151,7 +151,10 @@ If you encounter build issues, ensure you are using the **MinGW 64-bit** termina
 
 ### Manual Build Options
 
-you can read the `scripts\build.bat` to get all the build command
+See `scripts\build.bat` for the build commands. It produces:
+
+- `dist\click-guardian.exe` — the normal GUI application without a console window.
+- `dist\click-guardian-dev.exe` — the development build with console/debug output.
 
 ### Running the Application
 
@@ -254,7 +257,7 @@ Planned support:
 - **Check `internal/hooks/hook_unsupported.go`** for reference implementation
 - **All builds output to `dist/` directory** (git ignored)
 - **Open the `.code-workspace` file** instead of the folder for best VSCode experience
-- **Use the console version** for debugging output
+- **Use `click-guardian-dev.exe`** for console/debug output
 - **Icon resources** are auto-generated in `internal/gui/resources.go` using `fyne bundle`
 
 ## Project Configuration
@@ -276,7 +279,7 @@ fyne bundle -pkg resources -o internal/gui/resources/trayicon_resource.go assets
 
 ### Build Scripts
 
-- `scripts/build.bat` - Windows production build
+- `scripts/build.bat` - Windows GUI and development console builds
 - `scripts/dev.bat` - Development build and run
 - `scripts/troubleshoot.bat` - VSCode/Go environment diagnosis
 - `scripts/build.sh` - Cross-platform build script (future)

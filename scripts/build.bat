@@ -32,10 +32,10 @@ if not exist "cmd\click-guardian" (
 
 REM Build GUI version (no console window)
 echo Building GUI version...
-go build -ldflags "-s -w -H=windowsgui" -o dist\click-guardian-gui.exe .\cmd\click-guardian
+go build -ldflags "-s -w -H=windowsgui" -o dist\click-guardian.exe .\cmd\click-guardian
 
 if %ERRORLEVEL% EQU 0 (
-    echo ✅ GUI build successful! Created dist\click-guardian-gui.exe
+    echo ✅ GUI build successful! Created dist\click-guardian.exe
 ) else (
     echo ❌ GUI build failed with error code %ERRORLEVEL%!
     goto console_build
@@ -43,11 +43,11 @@ if %ERRORLEVEL% EQU 0 (
 
 REM Build console version (with console window for debugging)
 :console_build
-echo Building console version...
-go build -ldflags "-s -w" -o dist\click-guardian.exe .\cmd\click-guardian
+echo Building development console version...
+go build -ldflags "-s -w" -o dist\click-guardian-dev.exe .\cmd\click-guardian
 
 if %ERRORLEVEL% EQU 0 (
-    echo ✅ Console build successful! Created dist\click-guardian.exe
+    echo ✅ Development build successful! Created dist\click-guardian-dev.exe
 ) else (
     echo ❌ Console build failed with error code %ERRORLEVEL%!
     exit /b 1
@@ -55,8 +55,8 @@ if %ERRORLEVEL% EQU 0 (
 
 echo.
 echo Build complete! Executables are in the dist folder.
-echo - dist\click-guardian-gui.exe (recommended for normal use)
-echo - dist\click-guardian.exe (for debugging/console output)
+echo - dist\click-guardian.exe (GUI; recommended for normal use)
+echo - dist\click-guardian-dev.exe (development/debug console)
 
 REM Don't pause in CI environment
 if not defined GITHUB_ACTIONS pause

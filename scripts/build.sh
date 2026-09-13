@@ -34,9 +34,9 @@ for target in "${!targets[@]}"; do
     
     if [ "$GOOS" = "windows" ]; then
         # GUI version for Windows
-        GOOS=$GOOS GOARCH=$GOARCH go build -ldflags "-s -w -H=windowsgui" -o "${output%.*}-gui.exe" ./cmd/click-guardian
-        # Console version for Windows
-        GOOS=$GOOS GOARCH=$GOARCH go build -ldflags "-s -w" -o "$output" ./cmd/click-guardian
+        GOOS=$GOOS GOARCH=$GOARCH go build -ldflags "-s -w -H=windowsgui" -o "$output" ./cmd/click-guardian
+        # Development console version for Windows
+        GOOS=$GOOS GOARCH=$GOARCH go build -ldflags "-s -w" -o "${output%.*}-dev.exe" ./cmd/click-guardian
     else
         # Regular build for other platforms
         GOOS=$GOOS GOARCH=$GOARCH go build -ldflags "-s -w" -o "$output" ./cmd/click-guardian
