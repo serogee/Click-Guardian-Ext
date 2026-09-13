@@ -46,3 +46,4 @@ test_cgo.exe
 config.local.yaml
 config.local.json
 .env.local
+.plans
