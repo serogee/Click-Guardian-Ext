@@ -99,7 +99,9 @@ For development or custom builds, see [**Release Build Guide**](docs/RELEASE_BUI
 
 **Quick development build:**
 
-For detailed build instructions, see [**Development Guide**](docs/DEVELOPMENT.md)
+Run `scripts\build.bat`. It creates `dist\click-guardian.exe` for normal GUI use and `dist\click-guardian-dev.exe` with a console for development and debugging.
+
+For detailed build instructions, see the [**Build Instructions**](docs/BUILD.md) and [**Development Guide**](docs/DEVELOPMENT.md).
 
 ## Configuration
 

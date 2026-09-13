@@ -8,7 +8,7 @@
 # Quick development build and run
 scripts\dev.bat
 
-# Production build
+# Local GUI and development builds
 scripts\build.bat
 ```
 
@@ -31,7 +31,7 @@ This project includes several build and development scripts in the `scripts/` di
 Main Windows build script that creates both GUI and console versions.
 
 - Creates executables in `dist/` directory
-- Builds GUI version (no console window) and console version (for debugging)
+- Builds `click-guardian.exe` as the GUI version and `click-guardian-dev.exe` as the development console version
 - Handles build failures gracefully
 - Can be run from anywhere in the project
 
@@ -41,7 +41,7 @@ Cross-platform build script for multiple platforms.
 
 - Requires bash shell
 - Builds for Windows, Linux, and macOS
-- Creates both GUI and console versions for Windows
+- Creates GUI and development console versions for Windows
 - Outputs with platform-specific naming convention
 
 ### `dev.bat` (Windows)
@@ -78,10 +78,10 @@ scripts\troubleshoot.bat
 
 ```bash
 # Windows GUI version (recommended for end users)
-go build -ldflags "-s -w -H=windowsgui" -o dist/click-guardian-gui.exe ./cmd/click-guardian
+go build -ldflags "-s -w -H=windowsgui" -o dist/click-guardian.exe ./cmd/click-guardian
 
-# Windows Console version (for debugging)
-go build -ldflags "-s -w" -o dist/click-guardian.exe ./cmd/click-guardian
+# Windows development console version (for debugging)
+go build -ldflags "-s -w" -o dist/click-guardian-dev.exe ./cmd/click-guardian
 
 # Linux/macOS
 go build -ldflags "-s -w" -o dist/click-guardian ./cmd/click-guardian
@@ -90,8 +90,11 @@ go build -ldflags "-s -w" -o dist/click-guardian ./cmd/click-guardian
 ### Cross-Platform Build
 
 ```bash
-# Windows (64-bit)
-GOOS=windows GOARCH=amd64 go build -ldflags "-s -w" -o dist/click-guardian-windows-amd64.exe ./cmd/click-guardian
+# Windows GUI (64-bit)
+GOOS=windows GOARCH=amd64 go build -ldflags "-s -w -H=windowsgui" -o dist/click-guardian-windows-amd64.exe ./cmd/click-guardian
+
+# Windows development console (64-bit)
+GOOS=windows GOARCH=amd64 go build -ldflags "-s -w" -o dist/click-guardian-windows-amd64-dev.exe ./cmd/click-guardian
 
 # Linux (64-bit)
 GOOS=linux GOARCH=amd64 go build -ldflags "-s -w" -o dist/click-guardian-linux-amd64 ./cmd/click-guardian
@@ -109,9 +112,11 @@ All builds output to the `dist/` directory (git-ignored).
 
 ### Naming Convention
 
-- `click-guardian-gui.exe` - Windows GUI version (no console, recommended)
-- `click-guardian.exe` - Windows console version (shows debug output)
-- `click-guardian-{os}-{arch}` - Cross-platform builds
+- `click-guardian.exe` - Windows GUI version (no console, recommended)
+- `click-guardian-dev.exe` - Windows development version (shows console/debug output)
+- `click-guardian-windows-{arch}.exe` - Cross-platform script's Windows GUI build
+- `click-guardian-windows-{arch}-dev.exe` - Cross-platform script's Windows development console build
+- `click-guardian-{os}-{arch}` - Linux and macOS builds
 
 ## Development
 
@@ -177,8 +182,8 @@ See [VSCode Setup Guide](VSCODE_SETUP.md) for workspace configuration.
 **Windows:**
 
 - CGO is required for Windows API integration
-- GUI version (`-gui.exe`) has no console window
-- Console version (`.exe`) shows debug output
+- GUI version (`click-guardian.exe`) has no console window
+- Development version (`click-guardian-dev.exe`) shows console/debug output
 
 **Linux/macOS:**
 

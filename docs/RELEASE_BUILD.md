@@ -88,10 +88,10 @@ If you prefer to build manually:
 
 ```cmd
 # GUI version (recommended for users)
-go build -ldflags "-s -w -H=windowsgui" -o dist\click-guardian-gui.exe .\cmd\click-guardian
+go build -ldflags "-s -w -H=windowsgui" -o dist\click-guardian.exe .\cmd\click-guardian
 
-# Console version (for debugging)
-go build -ldflags "-s -w" -o dist\click-guardian.exe .\cmd\click-guardian
+# Development console version (for debugging)
+go build -ldflags "-s -w" -o dist\click-guardian-dev.exe .\cmd\click-guardian
 ```
 
 ### Build with Version Information
@@ -103,7 +103,7 @@ set GIT_COMMIT=abc1234
 set BUILD_BY=YourName
 
 # Build with version info
-go build -ldflags "-s -w -H=windowsgui -X click-guardian/internal/version.Version=%VERSION% -X click-guardian/internal/version.GitCommit=%GIT_COMMIT% -X click-guardian/internal/version.BuildBy=%BUILD_BY%" -o dist\click-guardian-gui.exe .\cmd\click-guardian
+go build -ldflags "-s -w -H=windowsgui -X click-guardian/internal/version.Version=%VERSION% -X click-guardian/internal/version.GitCommit=%GIT_COMMIT% -X click-guardian/internal/version.BuildBy=%BUILD_BY%" -o dist\click-guardian.exe .\cmd\click-guardian
 ```
 
 ## 📝 Windows Resource File (`.syso`)
@@ -126,7 +126,7 @@ The build process uses a Windows resource file to embed the application icon, ma
 1. **Get a certificate** from a trusted CA (DigiCert, Sectigo, etc.)
 2. **Use the signing script**:
    ```cmd
-   build\scripts\sign-code.bat dist\click-guardian-gui.exe path\to\cert.pfx password
+   build\scripts\sign-code.bat dist\click-guardian.exe path\to\cert.pfx password
    ```
 
 ### Self-Signed Certificate (Testing Only)
@@ -143,7 +143,7 @@ The ZIP package includes:
 
 ```
 click-guardian-v1.0.4-windows/
-├── click-guardian-gui.exe      # Main application
+├── click-guardian.exe          # Main application
 ├── README.txt                  # Usage instructions
 └── LICENSE                     # License (if present)
 ```

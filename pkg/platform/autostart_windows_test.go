@@ -127,6 +127,8 @@ func TestIsClickGuardianCommand(t *testing.T) {
 		want    bool
 	}{
 		{`"C:\Program Files (x86)\Click Guardian\click-guardian.exe"`, true},
+		{`C:\Tools\click-guardian-dev.exe`, true},
+		// Recognize the previous GUI build name so existing startup tasks can be migrated or removed.
 		{`C:\Tools\click-guardian-gui.exe`, true},
 		{`C:\Tools\unrelated.exe`, false},
 		{"", false},

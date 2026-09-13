@@ -8,7 +8,7 @@ This directory contains build and development scripts for the Click Guardian pro
 # Development (quick build and run)
 scripts\dev.bat
 
-# Production build
+# Local GUI and development builds
 scripts\build.bat
 
 # Troubleshoot setup issues
@@ -38,7 +38,7 @@ This document covers:
 
 ## Scripts Overview
 
-- **`build.bat`** - Windows production build (GUI + console versions)
+- **`build.bat`** - Windows GUI (`click-guardian.exe`) and development console (`click-guardian-dev.exe`) builds
 - **`build.sh`** - Cross-platform build script
 - **`dev.bat`** - Quick development testing
 - **`troubleshoot.bat`** - Go/CGO setup diagnosis
