@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"time"
@@ -26,6 +27,15 @@ func (realClock) Now() time.Time {
 }
 
 func main() {
+	// Elevated startup helpers must run before the single-instance guard because
+	// they are launched by an already-running GUI instance.
+	if handled, exitCode := handleAutoStartHelper(os.Args[1:]); handled {
+		if exitCode != platform.AutoStartHelperSuccessExitCode {
+			os.Exit(exitCode)
+		}
+		return
+	}
+
 	// Check for command line arguments
 	startMinimized := false
 	autoProtect := false
@@ -62,6 +72,10 @@ func main() {
 	}
 	defer releaser.Release() // Release mutex when the app exits
 
+	// An older manually-created task may lack --minimized or have unsafe
+	// lifetime settings. Repair it only when this process is already elevated.
+	_ = platform.RepairAdministratorAutoStart()
+
 	// If we reach here, this is the only instance
 	app := gui.NewApplication()
 	if startMinimized {
@@ -73,6 +87,31 @@ func main() {
 			app.Run()
 		}
 	}
+}
+
+func handleAutoStartHelper(args []string) (bool, int) {
+	if len(args) != 1 {
+		return false, platform.AutoStartHelperSuccessExitCode
+	}
+
+	var err error
+	switch args[0] {
+	case platform.AdminAutoStartInstallArg:
+		err = platform.InstallAdministratorAutoStart()
+	case platform.AdminAutoStartRemoveArg:
+		err = platform.RemoveAdministratorAutoStart()
+	default:
+		return false, platform.AutoStartHelperSuccessExitCode
+	}
+
+	if err == nil {
+		return true, platform.AutoStartHelperSuccessExitCode
+	}
+	platform.RecordAutoStartHelperError(err)
+	if errors.Is(err, platform.ErrAutoStartConflict) {
+		return true, platform.AutoStartHelperConflictExitCode
+	}
+	return true, platform.AutoStartHelperFailureExitCode
 }
 
 // showAlreadyRunningMessage shows a dialog informing the user that another instance is running

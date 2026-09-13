@@ -1,3 +1,6 @@
+> [!WARNING]
+> **Unofficial personal-use fork:** This repository was modified on 2026-09-13 and is not submitted for upstream merge. The additional features were built with AI assistance from GPT-5.6 Sol. The complete fork remains licensed under GNU GPL v3.0. “Personal-use” describes its maintenance purpose and does not restrict the rights granted by the GPL. Before using it, read [Fork Information](docs/FORK_INFORMATION.md).
+
 <table align="center" border="0" cellpadding="0" cellspacing="0" style="border-collapse: collapse; border: none; margin: 0 auto;">
   <tr>
     <td style="border: none; padding: 0;">
@@ -10,6 +13,7 @@
 </table>
 
 ---
+
 <p align="center">
   <a href="https://github.com/AHS12/click-guardian/releases">
     <img src="https://img.shields.io/github/downloads/AHS12/click-guardian/total" alt="Downloads">
@@ -24,7 +28,6 @@
     <img src="https://github.com/AHS12/click-guardian/actions/workflows/windows_build.yml/badge.svg" alt="Build Status">
   </a>
 </p>
-
 
 <p align="center">
   <strong>An application that prevents accidental double-clicks by introducing a customizable delay between mouse clicks - currently available on Windows.</strong>
@@ -68,9 +71,9 @@ The adaptive system ensures maximum protection against problematic mice while ma
 
 ### Auto-Start Features
 
-- **Start with Windows**: Enable "Start with Windows and auto-enable protection" to automatically launch when Windows boots
-- **Seamless Protection**: When enabled, the app starts minimized to system tray and automatically begins protection with your configured delay
-- **Perfect for Always-On Protection**: One checkbox for complete hands-off protection that starts automatically with Windows
+- **Startup Modes**: Choose Disabled, Standard, or Administrator startup in Settings
+- **Seamless Protection**: Standard and Administrator modes start minimized to the system tray and automatically enable protection with your configured delay
+- **Elevated Apps**: Administrator mode uses a highest-privilege logon task after a one-time Windows approval
 
 _Tip: Start with the default 50ms delay - it works well for most users._
 
@@ -84,7 +87,6 @@ _Tip: Start with the default 50ms delay - it works well for most users._
 2. Download the latest portable version `click-guardian-v*.zip`
 3. Extract and run `click-guardian.exe`
 4. Or you can download and install using the `msi` installer `click-guardian-installer.msi`
-
 
 ### Build from Source
 

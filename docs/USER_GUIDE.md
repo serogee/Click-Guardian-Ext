@@ -40,7 +40,10 @@ Click the **Settings** (gear icon) button to open the configuration window. The 
 
 - **Application Behavior:**
   - **Minimize to system tray when closing:** If checked, closing the window will minimize the app to the tray instead of exiting.
-  - **Start with Windows:** If checked, Click Guardian will launch automatically when you start your computer.
+  - **Start with Windows:** Choose how Click Guardian starts when you sign in:
+    - **Disabled:** Do not launch automatically.
+    - **Standard:** Launch minimized with protection enabled as a normal user.
+    - **Administrator:** Launch minimized with protection enabled and protect elevated apps. Windows asks for approval once when this mode is configured.
 
 #### 🖱️ Buttons Tab
 

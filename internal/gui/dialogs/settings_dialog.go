@@ -10,12 +10,13 @@ import (
 
 	"click-guardian/internal/config"
 	"click-guardian/internal/hooks"
+	"click-guardian/pkg/platform"
 )
 
 type SettingsCallbacks struct {
 	OnDelayChanged            func(int)
 	OnMinimizeToTrayChanged   func(bool)
-	OnAutoStartChanged        func(bool)
+	OnAutoStartChanged        func(platform.AutoStartMode) error
 	OnProtectedButtonsChanged func([]string)
 	OnDragFixChanged          func(bool)
 	OnDragFixThresholdChanged func(int)
@@ -23,7 +24,7 @@ type SettingsCallbacks struct {
 }
 
 // ShowSettingsDialog shows a comprehensive settings dialog
-func ShowSettingsDialog(parent fyne.Window, cfg *config.Config, initialAutoStart bool, callbacks SettingsCallbacks) {
+func ShowSettingsDialog(parent fyne.Window, cfg *config.Config, initialAutoStart platform.AutoStartMode, callbacks SettingsCallbacks) {
 	// --- Tab 1: General ---
 
 	// Delay Slider
@@ -48,15 +49,58 @@ func ShowSettingsDialog(parent fyne.Window, cfg *config.Config, initialAutoStart
 	})
 	minTrayCheck.Checked = cfg.MinimizeToTray
 
-	autoStartCheck := widget.NewCheck("Start with Windows", func(checked bool) {
-		callbacks.OnAutoStartChanged(checked)
-	})
-	autoStartCheck.Checked = initialAutoStart
+	startupOptions := []string{
+		platform.AutoStartDisabled.String(),
+		platform.AutoStartStandard.String(),
+		platform.AutoStartAdministrator.String(),
+	}
+	startupModeForLabel := func(label string) platform.AutoStartMode {
+		switch label {
+		case platform.AutoStartStandard.String():
+			return platform.AutoStartStandard
+		case platform.AutoStartAdministrator.String():
+			return platform.AutoStartAdministrator
+		default:
+			return platform.AutoStartDisabled
+		}
+	}
+
+	autoStartSelect := widget.NewSelect(startupOptions, nil)
+	autoStartSelect.SetSelected(initialAutoStart.String())
+	previousStartupSelection := initialAutoStart.String()
+	startupChangeInProgress := false
+	autoStartSelect.OnChanged = func(selected string) {
+		if startupChangeInProgress || selected == previousStartupSelection {
+			return
+		}
+
+		startupChangeInProgress = true
+		autoStartSelect.Disable()
+		go func(requestedSelection, previousSelection string) {
+			err := callbacks.OnAutoStartChanged(startupModeForLabel(requestedSelection))
+			fyne.Do(func() {
+				if err != nil {
+					autoStartSelect.SetSelected(previousSelection)
+					dialog.ShowError(err, parent)
+				} else {
+					previousStartupSelection = requestedSelection
+				}
+				startupChangeInProgress = false
+				autoStartSelect.Enable()
+			})
+		}(selected, previousStartupSelection)
+	}
+
+	autoStartInfo := widget.NewRichTextFromMarkdown(
+		"**Standard:** Starts minimized with protection enabled.\n\n" +
+			"**Administrator:** Also protects elevated apps and requires one-time Windows approval.")
+	autoStartInfo.Wrapping = fyne.TextWrapWord
 
 	behaviorContainer := container.NewVBox(
 		widget.NewLabel("Application Behavior"),
 		minTrayCheck,
-		autoStartCheck,
+		container.NewBorder(nil, nil, widget.NewLabel("Start with Windows"), nil, autoStartSelect),
+		autoStartInfo,
 	)
 
 	generalContent := container.NewVBox(

@@ -1,8 +1,44 @@
 package platform
 
 import (
+	"errors"
 	"runtime"
 )
+
+// AutoStartMode describes how the application should start with the desktop session.
+type AutoStartMode int
+
+const (
+	AutoStartDisabled AutoStartMode = iota
+	AutoStartStandard
+	AutoStartAdministrator
+)
+
+const (
+	// Auto-start helper arguments are handled before the single-instance mutex.
+	AdminAutoStartInstallArg = "--install-admin-startup"
+	AdminAutoStartRemoveArg  = "--remove-admin-startup"
+
+	AutoStartHelperSuccessExitCode  = 0
+	AutoStartHelperFailureExitCode  = 1
+	AutoStartHelperConflictExitCode = 2
+)
+
+var (
+	ErrElevationCancelled = errors.New("administrator approval was cancelled")
+	ErrAutoStartConflict  = errors.New("the administrator startup task name is already used by another application")
+)
+
+func (m AutoStartMode) String() string {
+	switch m {
+	case AutoStartStandard:
+		return "Standard"
+	case AutoStartAdministrator:
+		return "Administrator"
+	default:
+		return "Disabled"
+	}
+}
 
 // Info holds platform information
 type Info struct {
