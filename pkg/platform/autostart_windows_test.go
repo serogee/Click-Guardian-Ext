@@ -19,7 +19,7 @@ import (
 )
 
 func TestBuildAdministratorTaskXML(t *testing.T) {
-	exePath := `C:\Program Files (x86)\Click & Guardian\click-guardian.exe`
+	exePath := `C:\Program Files (x86)\Click & Guardian Ext\click-guardian-ext.exe`
 	data, err := buildAdministratorTaskXML(exePath, `MACHINE\test-user`, `S-1-5-21-1000`)
 	if err != nil {
 		t.Fatalf("buildAdministratorTaskXML returned an error: %v", err)
@@ -64,7 +64,7 @@ func TestBuildAdministratorTaskXML(t *testing.T) {
 	if task.Actions.Exec.Arguments != "--minimized" {
 		t.Errorf("Arguments = %q, want --minimized", task.Actions.Exec.Arguments)
 	}
-	if !strings.Contains(string(decoded), "Click &amp; Guardian") {
+	if !strings.Contains(string(decoded), "Click &amp; Guardian Ext") {
 		t.Error("generated task XML did not escape the executable path")
 	}
 }
@@ -83,12 +83,12 @@ func TestNewHiddenCommandContextSuppressesConsoleWindow(t *testing.T) {
 }
 
 func TestRunHiddenCommandTimesOut(t *testing.T) {
-	if os.Getenv("CLICK_GUARDIAN_TIMEOUT_HELPER") == "1" {
+	if os.Getenv("CLICK_GUARDIAN_EXT_TIMEOUT_HELPER") == "1" {
 		time.Sleep(time.Second)
 		return
 	}
 
-	t.Setenv("CLICK_GUARDIAN_TIMEOUT_HELPER", "1")
+	t.Setenv("CLICK_GUARDIAN_EXT_TIMEOUT_HELPER", "1")
 	started := time.Now()
 	_, err := runHiddenCommand(50*time.Millisecond, os.Args[0], "-test.run=TestRunHiddenCommandTimesOut")
 	if !errors.Is(err, context.DeadlineExceeded) {
@@ -100,7 +100,7 @@ func TestRunHiddenCommandTimesOut(t *testing.T) {
 }
 
 func TestParseQueriedTaskUTF16(t *testing.T) {
-	source := `<?xml version="1.0" encoding="UTF-16"?><Task xmlns="http://schemas.microsoft.com/windows/2004/02/mit/task"><Actions Context="Author"><Exec><Command>"C:\Program Files (x86)\Click Guardian\click-guardian.exe"</Command><Arguments>--minimized</Arguments></Exec></Actions></Task>`
+	source := `<?xml version="1.0" encoding="UTF-16"?><Task xmlns="http://schemas.microsoft.com/windows/2004/02/mit/task"><Actions Context="Author"><Exec><Command>"C:\Program Files (x86)\Click Guardian Ext\click-guardian-ext.exe"</Command><Arguments>--minimized</Arguments></Exec></Actions></Task>`
 	units := utf16.Encode([]rune(source))
 	data := []byte{0xff, 0xfe}
 	for _, unit := range units {
@@ -126,10 +126,10 @@ func TestIsClickGuardianCommand(t *testing.T) {
 		command string
 		want    bool
 	}{
-		{`"C:\Program Files (x86)\Click Guardian\click-guardian.exe"`, true},
-		{`C:\Tools\click-guardian-dev.exe`, true},
-		// Recognize the previous GUI build name so existing startup tasks can be migrated or removed.
-		{`C:\Tools\click-guardian-gui.exe`, true},
+		{`"C:\Program Files (x86)\Click Guardian Ext\click-guardian-ext.exe"`, true},
+		{`C:\Tools\click-guardian-ext-dev.exe`, true},
+		{`C:\Tools\click-guardian.exe`, false},
+		{`C:\Tools\click-guardian-dev.exe`, false},
 		{`C:\Tools\unrelated.exe`, false},
 		{"", false},
 	}
@@ -138,5 +138,17 @@ func TestIsClickGuardianCommand(t *testing.T) {
 		if got := isClickGuardianCommand(test.command); got != test.want {
 			t.Errorf("isClickGuardianCommand(%q) = %v, want %v", test.command, got, test.want)
 		}
+	}
+}
+
+func TestAutoStartUsesForkSpecificIdentifiers(t *testing.T) {
+	if registryValue != "ClickGuardianExt" {
+		t.Fatalf("registryValue = %q, want ClickGuardianExt", registryValue)
+	}
+	if autoStartStateKey != `SOFTWARE\ClickGuardianExt` {
+		t.Fatalf("autoStartStateKey = %q, want SOFTWARE\\ClickGuardianExt", autoStartStateKey)
+	}
+	if administratorTaskName != "ClickGuardianExt Admin Startup" {
+		t.Fatalf("administratorTaskName = %q, want ClickGuardianExt Admin Startup", administratorTaskName)
 	}
 }

@@ -1,10 +1,10 @@
 # Single Instance Implementation
 
-This document explains how Click Guardian prevents multiple instances from running simultaneously.
+This document explains how Click Guardian Ext prevents multiple instances from running simultaneously.
 
 ## Overview
 
-Click Guardian implements a single instance mechanism to prevent users from accidentally launching multiple copies of the application. When a user attempts to launch a second instance, they will see a dialog informing them that the application is already running and directing them to the system tray icon.
+Click Guardian Ext implements a single instance mechanism to prevent users from accidentally launching multiple copies of the application. When a user attempts to launch a second instance, they will see a dialog informing them that the application is already running and directing them to the system tray icon.
 
 ## Implementation Details
 
@@ -18,7 +18,7 @@ The implementation uses a named mutex provided by the juju/mutex package:
 
 1. **Named Mutex**
    - Creates a named mutex using the juju/mutex package
-   - Named as `click-guardian-single-instance`
+   - Named as `click-guardian-ext-single-instance`
    - If the mutex already exists, another instance is running
    - The package handles cross-platform mutex creation
 
@@ -46,7 +46,7 @@ When a user attempts to launch a second instance:
 1. The second process starts but immediately detects the running instance
 2. A dialog appears with the message:
    ```
-   Click Guardian is already running.
+   Click Guardian Ext is already running.
    
    Look for the icon in your system tray or check your taskbar.
    ```
@@ -72,7 +72,7 @@ The implementation uses the juju/mutex package which provides cross-platform mut
 
 To test the single instance functionality:
 
-1. Launch Click Guardian normally
+1. Launch Click Guardian Ext normally
 2. Attempt to launch a second instance
 3. Verify that the "Already Running" dialog appears
 4. Close the first instance

@@ -3,6 +3,7 @@ package version
 import (
 	"fmt"
 	"runtime"
+	"strings"
 	"time"
 )
 
@@ -32,7 +33,7 @@ type AppInfo struct {
 // GetAppInfo returns comprehensive application information
 func GetAppInfo() AppInfo {
 	return AppInfo{
-		Name:        "Click Guardian",
+		Name:        "Click Guardian Ext",
 		Version:     Version,
 		GitCommit:   GitCommit,
 		BuildTime:   BuildTime,
@@ -42,13 +43,13 @@ func GetAppInfo() AppInfo {
 		Arch:        runtime.GOARCH,
 		Description: "Prevents accidental double-clicks with configurable delay protection",
 		Copyright:   fmt.Sprintf("© %d Azizul Hakim", time.Now().Year()),
-		Company:     "Click Guardian Project",
+		Company:     "Click Guardian Ext Project",
 	}
 }
 
 // GetVersionString returns a formatted version string
 func GetVersionString() string {
-	if Version == "dev" {
+	if strings.HasPrefix(Version, "dev") {
 		return fmt.Sprintf("%s (development build)", Version)
 	}
 	return Version

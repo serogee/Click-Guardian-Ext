@@ -2,7 +2,7 @@
 
 set -e
 
-echo "Building Click Guardian for multiple platforms..."
+echo "Building Click Guardian Ext for multiple platforms..."
 
 # Get script directory and navigate to project root
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -18,11 +18,11 @@ rm -f dist/*
 
 # Define build targets
 declare -A targets=(
-    ["windows/amd64"]="dist/click-guardian-windows-amd64.exe"
-    ["windows/386"]="dist/click-guardian-windows-386.exe"
-    ["linux/amd64"]="dist/click-guardian-linux-amd64"
-    ["darwin/amd64"]="dist/click-guardian-darwin-amd64"
-    ["darwin/arm64"]="dist/click-guardian-darwin-arm64"
+    ["windows/amd64"]="dist/click-guardian-ext-windows-amd64.exe"
+    ["windows/386"]="dist/click-guardian-ext-windows-386.exe"
+    ["linux/amd64"]="dist/click-guardian-ext-linux-amd64"
+    ["darwin/amd64"]="dist/click-guardian-ext-darwin-amd64"
+    ["darwin/arm64"]="dist/click-guardian-ext-darwin-arm64"
 )
 
 # Build for each target

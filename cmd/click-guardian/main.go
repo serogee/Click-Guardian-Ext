@@ -57,10 +57,10 @@ func main() {
 
 	// Define a unique name for your app's mutex
 	spec := mutex.Spec{
-		Name:    "click-guardian-single-instance", // Must be unique per app (valid format)
-		Clock:   realClock{},                      // Use real-time clock
-		Delay:   500 * time.Millisecond,           // Polling interval
-		Timeout: 1 * time.Second,                  // How long to wait for the mutex
+		Name:    "click-guardian-ext-single-instance", // Must be unique per app (valid format)
+		Clock:   realClock{},                          // Use real-time clock
+		Delay:   500 * time.Millisecond,               // Polling interval
+		Timeout: 1 * time.Second,                      // How long to wait for the mutex
 	}
 
 	// Try to acquire the mutex
@@ -117,7 +117,7 @@ func handleAutoStartHelper(args []string) (bool, int) {
 // showAlreadyRunningMessage shows a dialog informing the user that another instance is running
 func showAlreadyRunningMessage() {
 	// Show a native Windows message box
-	platform.ShowMessageBox("Click Guardian", "Click Guardian is already running.\n\nLook for the icon in your system tray or check your taskbar.")
+	platform.ShowMessageBox("Click Guardian Ext", "Click Guardian Ext is already running.\n\nLook for the icon in your system tray or check your taskbar.")
 }
 
 // showHelp displays command-line usage information

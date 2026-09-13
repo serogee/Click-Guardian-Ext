@@ -1,5 +1,5 @@
 name: Bug Report
-description: Report an Issue or Bug with Click Guardian
+description: Report an Issue or Bug with Click Guardian Ext
 title: "[Bug]: "
 labels: ["bug"]
 body:
@@ -27,7 +27,7 @@ body:
     id: app-version
     attributes:
       label: App Version
-      description: What version of Click Guardian are you running? Please be as specific as possible
+      description: What version of Click Guardian Ext are you running? Please be as specific as possible
       placeholder: 1.0.0
     validations:
       required: true

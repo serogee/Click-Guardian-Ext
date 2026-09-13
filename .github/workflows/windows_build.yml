@@ -1,110 +1,55 @@
-name: Build Check(Windows)
+name: Windows build
 
 on:
   pull_request:
     types: [opened, synchronize, reopened]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
 
 jobs:
   build:
     runs-on: windows-latest
 
     steps:
-      - name: Checkout code
+      - name: Checkout repository
         uses: actions/checkout@v4
 
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
-          go-version: '^1.24'
-          # Alternatively: go-version: 'stable'
-      - name: Set up MinGW for CGO (required for Fyne)
+          go-version: "1.24.x"
+          cache: true
+
+      - name: Set up MinGW
         uses: msys2/setup-msys2@v2
         with:
           msystem: MINGW64
           update: true
           install: >-
             mingw-w64-x86_64-gcc
+            mingw-w64-x86_64-binutils
             mingw-w64-x86_64-pkg-config
 
-      - name: Add MinGW to PATH and set CGO vars
+      - name: Configure CGO tools
         shell: pwsh
         run: |
-          $mingwPath = "C:\msys64\mingw64\bin"
-          echo $mingwPath >> $env:GITHUB_PATH
-          echo "CC=gcc" >> $env:GITHUB_ENV
-          echo "CXX=g++" >> $env:GITHUB_ENV
-          echo "CGO_ENABLED=1" >> $env:GITHUB_ENV
+          "C:\msys64\mingw64\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+          "CC=gcc" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          "CXX=g++" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          "CGO_ENABLED=1" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
 
-      - name: Verify Go installation and CGO setup
-        run: |
-          go version
-          gcc --version
-          echo "CGO_ENABLED: $env:CGO_ENABLED"
+      - name: Build and test
+        shell: pwsh
+        run: ./scripts/build.ps1 -Configuration Development -Architecture amd64 -CI
 
-      - name: Check go.mod exists
-        shell: cmd
-        run: |
-          if not exist go.mod (
-            echo "❌ go.mod not found!"
-            exit /b 1
-          )
-          echo "✅ go.mod found"
-
-      - name: Install Go dependencies
-        shell: cmd
-        run: |
-          echo "Downloading dependencies..."
-          go mod download -x
-          echo "Dependencies downloaded successfully"
-
-      - name: Create dist directory
-        shell: cmd
-        run: if not exist "dist" mkdir dist
-
-      - name: Clean previous builds
-        shell: cmd
-        run: del /Q dist\*.exe 2>nul || echo "No previous builds to clean"
-
-      - name: Check Go and CGO environment
-        run: |
-          go version
-          go env GOOS GOARCH CGO_ENABLED CC CXX
-
-      - name: List dependencies
-        run: go list -m all
-
-      - name: Build GUI version
-        shell: cmd
-        run: |
-          echo Building GUI version...
-          go build -v -ldflags "-s -w -H=windowsgui" -o dist\click-guardian.exe .\cmd\click-guardian
-          if %ERRORLEVEL% EQU 0 (
-            echo ✅ GUI build successful!
-          ) else (
-            echo ❌ GUI build failed with error code %ERRORLEVEL%!
-          )
-
-      - name: Build development console version
-        shell: cmd
-        run: |
-          echo Building development console version...
-          go build -v -ldflags "-s -w" -o dist\click-guardian-dev.exe .\cmd\click-guardian
-          if %ERRORLEVEL% EQU 0 (
-            echo ✅ Console build successful!
-          ) else (
-            echo ❌ Console build failed with error code %ERRORLEVEL%!
-            exit /b 1
-          )
-
-      - name: Check if EXE was generated
-        shell: cmd
-        run: |
-          if not exist dist\click-guardian.exe (
-            echo "❌ GUI EXE not found!"
-            exit /b 1
-          )
-          if not exist dist\click-guardian-dev.exe (
-            echo "❌ Development console EXE not found!"
-            exit /b 1
-          )
-          echo "✅ Both EXE files found."
+      - name: Upload development artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: click-guardian-ext-development-windows-amd64
+          if-no-files-found: error
+          path: |
+            dist/click-guardian-ext.exe
+            dist/click-guardian-ext-dev.exe

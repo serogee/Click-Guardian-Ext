@@ -1,0 +1,152 @@
+name: GitHub release
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Existing version tag to build, such as v1.0.0
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: windows-latest
+
+    steps:
+      - name: Select release tag
+        shell: pwsh
+        env:
+          DISPATCH_TAG: ${{ inputs.tag }}
+        run: |
+          $tag = if ($env:GITHUB_EVENT_NAME -eq "workflow_dispatch") { $env:DISPATCH_TAG } else { $env:GITHUB_REF_NAME }
+          if ($tag -notmatch '^v\d+\.\d+\.\d+$') {
+            throw "Release tag '$tag' must have the form vX.Y.Z."
+          }
+          "RELEASE_TAG=$tag" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          "RELEASE_VERSION=$($tag.Substring(1))" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+
+      - name: Checkout tagged source
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref }}
+          fetch-depth: 0
+
+      - name: Verify tag is on main history
+        shell: pwsh
+        run: |
+          git fetch origin main:refs/remotes/origin/main --no-tags
+          git merge-base --is-ancestor HEAD origin/main
+          if ($LASTEXITCODE -ne 0) {
+            throw "The release tag is not part of the main branch history."
+          }
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.24.x"
+          cache: true
+
+      - name: Set up MinGW
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: MINGW64
+          update: true
+          install: >-
+            mingw-w64-x86_64-gcc
+            mingw-w64-x86_64-binutils
+            mingw-w64-x86_64-pkg-config
+
+      - name: Configure CGO tools
+        shell: pwsh
+        run: |
+          "C:\msys64\mingw64\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+          "CC=gcc" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          "CXX=g++" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          "CGO_ENABLED=1" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+
+      - name: Install MSI tools
+        shell: pwsh
+        run: |
+          choco install wixtoolset --yes --no-progress
+          if ($LASTEXITCODE -ne 0) { throw "WiX Toolset installation failed." }
+          go install github.com/mh-cbon/go-msi@1.0.2
+          if ($LASTEXITCODE -ne 0) { throw "go-msi installation failed." }
+          (Join-Path (go env GOPATH) "bin") | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+          foreach ($tool in @("candle.exe", "light.exe")) {
+            $command = Get-Command $tool -ErrorAction SilentlyContinue
+            if ($null -eq $command) {
+              throw "$tool was not found after installing WiX Toolset."
+            }
+            (Split-Path -Parent $command.Source) | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+          }
+
+      - name: Prepare signing certificate
+        shell: pwsh
+        env:
+          CERTIFICATE_BASE64: ${{ secrets.WINDOWS_SIGNING_CERT_BASE64 }}
+        run: |
+          if ([string]::IsNullOrWhiteSpace($env:CERTIFICATE_BASE64)) {
+            Write-Host "No signing certificate is configured."
+            exit 0
+          }
+          $certificatePath = Join-Path $env:RUNNER_TEMP "click-guardian-ext-signing.pfx"
+          [IO.File]::WriteAllBytes($certificatePath, [Convert]::FromBase64String($env:CERTIFICATE_BASE64))
+          "SIGN_CERT_FILE=$certificatePath" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          $signTool = Get-Command signtool.exe -ErrorAction SilentlyContinue
+          $signToolPath = if ($null -ne $signTool) { $signTool.Source } else { $null }
+          if ($null -eq $signTool) {
+            $kitsRoot = Join-Path ${env:ProgramFiles(x86)} "Windows Kits\10\bin"
+            $signToolPath = Get-ChildItem -LiteralPath $kitsRoot -Filter signtool.exe -Recurse -File -ErrorAction SilentlyContinue |
+              Where-Object { $_.DirectoryName -like "*\x64" } |
+              Sort-Object FullName -Descending |
+              Select-Object -First 1 -ExpandProperty FullName
+          }
+          if ([string]::IsNullOrWhiteSpace($signToolPath)) {
+            throw "signtool.exe was not found on the Windows runner."
+          }
+          (Split-Path -Parent $signToolPath) | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+
+      - name: Build release artifacts
+        shell: pwsh
+        env:
+          SIGN_CERT_PASSWORD: ${{ secrets.WINDOWS_SIGNING_CERT_PASSWORD }}
+          SIGN_TIMESTAMP_URL: ${{ vars.WINDOWS_SIGNING_TIMESTAMP_URL }}
+        run: ./scripts/build.ps1 -Configuration Release -Version $env:RELEASE_VERSION -Architecture amd64 -CI -Clean
+
+      - name: Upload workflow artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: click-guardian-ext-release-windows-amd64
+          if-no-files-found: error
+          path: |
+            dist/click-guardian-ext.exe
+            dist/click-guardian-ext-v*-windows-amd64-portable.zip
+            dist/click-guardian-ext-v*-windows-amd64-installer.msi
+            dist/SHA256SUMS.txt
+
+      - name: Create draft GitHub release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $assets = @(
+            "dist/click-guardian-ext-v$env:RELEASE_VERSION-windows-amd64-portable.zip",
+            "dist/click-guardian-ext-v$env:RELEASE_VERSION-windows-amd64-installer.msi",
+            "dist/SHA256SUMS.txt"
+          )
+          gh release create $env:RELEASE_TAG @assets --draft --verify-tag --generate-notes --title "Click Guardian Ext $env:RELEASE_TAG"
+
+      - name: Remove signing certificate
+        if: ${{ always() }}
+        shell: pwsh
+        run: |
+          $certificatePath = Join-Path $env:RUNNER_TEMP "click-guardian-ext-signing.pfx"
+          if (Test-Path -LiteralPath $certificatePath) {
+            Remove-Item -LiteralPath $certificatePath -Force
+          }

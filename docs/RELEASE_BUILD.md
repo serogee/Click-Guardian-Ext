@@ -1,239 +1,102 @@
-# Release Build Guide
+# Click Guardian Ext Release Build Guide
 
-This guide explains how to create professional release builds of Click Guardian with proper versioning and packaging.
+## Local Release Candidate
 
-## 🚀 Quick Start
+Build the same release artifacts that GitHub Actions produces:
 
-For a simple release build:
+```powershell
+.\scripts\build.ps1 -Configuration Release -Version 1.0.0 -Architecture amd64 -Clean
+```
+
+The older command remains available as a wrapper and reads the default version from `build\build.conf`:
 
 ```cmd
 scripts\release-build.bat
 ```
 
-This will create:
+The shared builder runs tests, generates clean Windows resources, builds the GUI executable once, optionally signs it, creates the portable ZIP and MSI, optionally signs the MSI, and writes final SHA-256 checksums.
 
-- `dist\click-guardian.exe` - Main application
-- `dist\click-guardian-v1.0.4-windows-portable.zip` - Complete release package
+## Release Artifacts
+
+For version `1.0.0`, the release output is:
+
+```text
+dist/
+|-- click-guardian-ext.exe
+|-- click-guardian-ext-v1.0.0-windows-amd64-portable.zip
+|-- click-guardian-ext-v1.0.0-windows-amd64-installer.msi
+`-- SHA256SUMS.txt
 ```
 
-## 📋 Prerequisites
+The `click-guardian-ext-dev.exe` development console executable is not distributed in a release.
 
-### Required
+## Version and Resource Data
 
-- **Go 1.24.1+** with CGO enabled
-- **Git** (for version information)
+The release version must use semantic version form such as `1.0.0`. The script uses its numeric portion for Windows version resources and passes these values to the application through linker flags:
 
-### Optional
+- Release version
+- Git commit
+- UTC build time
+- Builder name
 
-- **Windows SDK** (for code signing with `signtool`)
-- **Code signing certificate** (for production releases)
+Resource inputs are generated from `build/windows/app.rc.template` and `build/windows/app-manifest.xml.template`. The source templates and `wix.json` are never rewritten during a build.
 
-## 📝 Version Management
+## Local Tooling
 
-### Change Version Number
+In addition to Go, GCC, and `windres`, complete release packaging requires:
 
-Edit **ONE** file to change the version:
+- WiX Toolset
+- `go-msi`
+- `signtool` when signing is configured
 
-**File: `build\build.conf`**
+To test the release executable and portable ZIP without an MSI:
 
-```ini
-VERSION=1.0.4
+```powershell
+.\scripts\build.ps1 -Configuration Release -Version 1.0.0 -SkipInstaller -SkipSigning
 ```
 
-That's it! The build script automatically uses this version for:
+## Signing Configuration
 
-- Executable metadata
-- Package naming
-- Release documentation
+Provide signing settings through environment variables rather than committed configuration:
 
-The release build script automatically updates the following files with the new version:
+```text
+SIGN_CERT_FILE
+SIGN_CERT_PASSWORD
+SIGN_TIMESTAMP_URL
+```
 
-- `wix.json` - Windows installer configuration
-- `build/windows/app.rc` - Windows resource file (contains version info embedded in executable)
-- `build/windows/app-manifest.xml` - Application manifest file
+The GitHub workflow expects these repository settings:
 
-### Version Auto-Detection
+- Secret `WINDOWS_SIGNING_CERT_BASE64`
+- Secret `WINDOWS_SIGNING_CERT_PASSWORD`
+- Variable `WINDOWS_SIGNING_TIMESTAMP_URL`
 
-The build script automatically includes:
+Signing is optional. If the certificate secret is not configured, the workflow creates unsigned artifacts and the log states that signing was skipped.
 
-- **Git commit hash** - from `git rev-parse --short HEAD`
-- **Build timestamp** - current date/time
-- **Builder name** - from `git config user.name` or Windows username
+## GitHub Release Flow
 
-## 🏗️ Build Process
+1. Merge the release-ready changes into `main`.
+2. Confirm the Windows build workflow passes.
+3. Create and push an annotated version tag:
 
-The simplified build process:
-
-1. **Load version** from `build\build.conf`
-2. **Get git info** (commit, builder name)
-3. **Generate Windows resource file** (icon, manifest, version info)
    ```cmd
-   windres build\windows\app.rc -O coff -o cmd\click-guardian\click-guardian.syso
-   ```
-4. **Build executables** with embedded version info
-5. **Create release package** with documentation
-6. **Generate ZIP file** ready for distribution
-
-### What Gets Built
-
-- **GUI Version** (`click-guardian.exe`) - Main application for end users  
-  _(Windows icon, manifest, and version info are embedded via `click-guardian.syso`)_
-- **Release Package** (`click-guardian-v1.0.4-windows-portable.zip`) - Complete distribution package
-
-## 🔧 Manual Build Commands
-
-If you prefer to build manually:
-
-### Basic Build (Same as your original build.bat)
-
-```cmd
-# GUI version (recommended for users)
-go build -ldflags "-s -w -H=windowsgui" -o dist\click-guardian.exe .\cmd\click-guardian
-
-# Development console version (for debugging)
-go build -ldflags "-s -w" -o dist\click-guardian-dev.exe .\cmd\click-guardian
-```
-
-### Build with Version Information
-
-```cmd
-# Set your version
-set VERSION=1.0.4
-set GIT_COMMIT=abc1234
-set BUILD_BY=YourName
-
-# Build with version info
-go build -ldflags "-s -w -H=windowsgui -X click-guardian/internal/version.Version=%VERSION% -X click-guardian/internal/version.GitCommit=%GIT_COMMIT% -X click-guardian/internal/version.BuildBy=%BUILD_BY%" -o dist\click-guardian.exe .\cmd\click-guardian
-```
-
-## 📝 Windows Resource File (`.syso`)
-
-The build process uses a Windows resource file to embed the application icon, manifest, and version info into the executable.
-
-- **Resource script:** `build/windows/app.rc`
-- **Icon:** `build/windows/app-icon.ico`
-- **Manifest:** `build/windows/app-manifest.xml`
-- **How to generate:**
-  ```cmd
-  windres build\windows\app.rc -O coff -o cmd\click-guardian\click-guardian.syso
-  ```
-- The `.syso` file must be in the same directory as `main.go` (`cmd\click-guardian\`).
-
-## 🔐 Code Signing (Optional)
-
-### For Production Releases
-
-1. **Get a certificate** from a trusted CA (DigiCert, Sectigo, etc.)
-2. **Use the signing script**:
-   ```cmd
-   build\scripts\sign-code.bat dist\click-guardian.exe path\to\cert.pfx password
+   git tag -a v1.0.0 -m "Release version 1.0.0"
+   git push origin v1.0.0
    ```
 
-### Self-Signed Certificate (Testing Only)
+4. `.github/workflows/release.yml` checks out the existing tag and verifies that its commit is part of `main` history.
+5. The workflow installs the required compiler and MSI tools.
+6. It calls `build.ps1 -Configuration Release` with the version derived from the tag.
+7. It uploads the executable and packages as workflow artifacts.
+8. It creates a draft GitHub Release from the verified tag and attaches the ZIP, MSI, and checksum file.
+9. Inspect the draft and publish it manually.
 
-```cmd
-# Create self-signed certificate (Windows will show warnings)
-makecert -sv mykey.pvk -n "CN=YourName" mycert.cer
-pvk2pfx -pvk mykey.pvk -spc mycert.cer -pfx mycert.pfx
-```
+The workflow can also be started manually with `workflow_dispatch`, but it still requires an existing valid version tag.
 
-## 📦 Release Package Contents
+## Why Releases Are Drafted
 
-The ZIP package includes:
+Draft creation keeps the final publication decision manual while preserving an automated and repeatable build. It gives the maintainer a chance to inspect file names, signatures, checksums, release notes, and installation behavior before publication.
 
-```
-click-guardian-v1.0.4-windows/
-├── click-guardian.exe          # Main application
-├── README.txt                  # Usage instructions
-└── LICENSE                     # License (if present)
-```
+## Failure Behavior
 
-## 🚀 Distribution
-
-### GitHub Releases (Recommended)\n\n1. **Update version** in `build\\build.conf`\n2. **Build release**:\n   ```cmd\n   scripts\
-elease-build.bat\n   ```\n3. **Create git tag**:\n   ```cmd\n   git tag -a v1.0.4 -m \"Release version 1.0.4\"\n   git push origin v1.0.4\n   ```\n4. **Upload to GitHub**:\n   - Go to GitHub → Releases → Create new release\n   - Upload `dist\\click-guardian-v1.0.4-windows-portable.zip`
-
-### Direct Distribution
-
-- Share the ZIP file directly
-- Upload to your website
-- Distribute the signed executables
-
-## 🔍 Testing Your Build
-
-### Check Version Information
-
-```cmd
-# The GUI version doesn't show console output, but you can verify it was built correctly
-# by checking the file exists and running it to see the About dialog
-```
-
-### Verify Functionality
-
-1. **GUI Version** - Should start without console window and show the main interface
-2. **About Dialog** - Check "About" button to verify version info is embedded
-3. **Protection** - Test double-click blocking works
-
-## 🐛 Simple Troubleshooting
-
-### Build Fails
-
-```cmd
-# Check Go environment
-go version
-go env
-
-# Clean and retry
-rmdir /s /q dist
-scripts\release-build.bat
-```
-
-### No Version Info
-
-- Make sure `build\build.conf` exists with `VERSION=1.0.4`
-- Check that Git is installed and working
-
-### Large File Size
-
-- Executable is ~24MB (normal for Go with CGO and GUI)
-- Use the original `scripts\build.bat` for smaller builds without version info if needed
-
-## 📂 Files You Might Need to Edit
-
-### For Version Changes
-
-- **`build\build.conf`** - Change `VERSION=1.0.4` to your new version
-
-### For Build Customization
-
-- **`scripts\release-build.bat`** - Modify build process
-- **`scripts\build.bat`** - Your original working build script
-
-### For App Changes
-
-- **`cmd\click-guardian\main.go`** - Main application entry point
-- **`internal\version\version.go`** - Version handling code
-
----
-
-## 🎯 Quick Reference
-
-**To release a new version:**
-
-1. Edit `build\build.conf` → change VERSION
-2. Run `scripts\release-build.bat`
-3. Upload `dist\click-guardian-v1.0.4-windows-portable.zip`
-
-**Simple build (no packaging):**
-
-```cmd
-scripts\build.bat
-```
-
-**Release build (with packaging):**
-
-```cmd
-scripts\release-build.bat
-```
-
-That's it! 🎉
+The release stops when tests, resource generation, compilation, metadata validation, signing, or packaging fails. Temporary `.syso` and staging files are removed even after failure. A failed release job does not publish a GitHub Release.

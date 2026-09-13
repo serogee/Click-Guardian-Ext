@@ -1,5 +1,5 @@
 @echo off
-echo Running Click Guardian in development mode...
+echo Running Click Guardian Ext in development mode...
 
 REM Navigate to project root
 cd /d "%~dp0.."

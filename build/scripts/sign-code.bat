@@ -10,8 +10,8 @@ if "%1"=="" (
     echo Usage: sign-code.bat ^<executable^> [certificate_file] [password]
     echo.
     echo Examples:
-    echo   sign-code.bat dist\click-guardian.exe
-    echo   sign-code.bat dist\click-guardian.exe mycert.pfx mypassword
+    echo   sign-code.bat dist\click-guardian-ext.exe
+    echo   sign-code.bat dist\click-guardian-ext.exe mycert.pfx mypassword
     echo.
     exit /b 1
 )
@@ -61,7 +61,7 @@ signtool sign ^
     /f "%CERT_FILE%" ^
     /p "%CERT_PASSWORD%" ^
     /t http://timestamp.digicert.com ^
-    /d "Click Guardian" ^
+    /d "Click Guardian Ext" ^
     /du "https://github.com/your-repo" ^
     "%EXECUTABLE%"
 

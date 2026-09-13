@@ -1,4 +1,4 @@
-# Welcome to Click Guardian!
+# Welcome to Click Guardian Ext!
 
 This guide will help you get started and explain what each part of the app does.
 
@@ -7,8 +7,8 @@ This guide will help you get started and explain what each part of the app does.
 ## Main Screen Overview
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/AHS12/click-guardian/refs/heads/main/image.png" alt="Screenshot 1" width="320" style="display:inline-block; margin-right:10px;">
-  <img src="https://raw.githubusercontent.com/AHS12/click-guardian/refs/heads/main/image1.png" alt="Screenshot 2" width="320" style="display:inline-block;">
+  <img src="https://raw.githubusercontent.com/serogee/Click-Guardian-Ext/refs/heads/main/image.png" alt="Screenshot 1" width="320" style="display:inline-block; margin-right:10px;">
+  <img src="https://raw.githubusercontent.com/serogee/Click-Guardian-Ext/refs/heads/main/image1.png" alt="Screenshot 2" width="320" style="display:inline-block;">
 </p>
 
 ---
@@ -40,7 +40,7 @@ Click the **Settings** (gear icon) button to open the configuration window. The 
 
 - **Application Behavior:**
   - **Minimize to system tray when closing:** If checked, closing the window will minimize the app to the tray instead of exiting.
-  - **Start with Windows:** Choose how Click Guardian starts when you sign in:
+  - **Start with Windows:** Choose how Click Guardian Ext starts when you sign in:
     - **Disabled:** Do not launch automatically.
     - **Standard:** Launch minimized with protection enabled as a normal user.
     - **Administrator:** Launch minimized with protection enabled and protect elevated apps. Windows asks for approval once when this mode is configured.
@@ -105,7 +105,7 @@ This application uses low-level mouse hooks that may be detected by anti-cheat s
 
 ### Recommendations for Gamers:
 
-1. **Stop Protection Before Gaming**: Always disable Click Guardian before launching multiplayer games
+1. **Stop Protection Before Gaming**: Always disable Click Guardian Ext before launching multiplayer games
 2. **Exit Completely**: Use "Quit Application" from the system tray rather than just minimizing
 3. **Test in Single Player**: If unsure, test with single-player games first
 4. **Create Gaming Profile**: Consider using Windows Task Scheduler to automatically stop the service during gaming hours
@@ -118,7 +118,7 @@ Anti-cheat systems flag applications that:
 - Block or modify mouse input events
 - Monitor global system activity
 
-While Click Guardian is legitimate accessibility software, its technical methods are similar to those used by cheating software.
+While Click Guardian Ext is legitimate accessibility software, its technical methods are similar to those used by cheating software.
 
 **I am not responsible for any account bans or penalties resulting from anti-cheat detection. Use at your own risk with online games.**
 
@@ -134,7 +134,7 @@ While Click Guardian is legitimate accessibility software, its technical methods
 
 ## System Tray
 
-- When minimized, Click Guardian stays in your system tray.
+- When minimized, Click Guardian Ext stays in your system tray.
 - Right-click the tray icon for quick access to start/stop protection or exit the app.
 
 ---

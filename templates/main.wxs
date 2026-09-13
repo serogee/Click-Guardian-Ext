@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+  <!-- build.ps1 replaces the automatic product code marker in its staged copy. -->
   <Product Id="*" Name="{{.Product}}" Language="1033" Version="{{.Version}}" Manufacturer="{{.Company}}" UpgradeCode="{{.UpgradeCode}}">
     <Package InstallerVersion="200" Compressed="yes" InstallScope="perMachine" Description="{{.Product}} {{.Version}} Installer" Comments="{{.Product}} version {{.Version}}" />
 

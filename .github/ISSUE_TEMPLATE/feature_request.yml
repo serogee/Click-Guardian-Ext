@@ -1,12 +1,12 @@
 name: Feature Request
-description: Suggest an idea or improvement for Click Guardian
+description: Suggest an idea or improvement for Click Guardian Ext
 title: "[Feature]: "
 labels: ["feature"]
 body:
   - type: markdown
     attributes:
       value: |
-        Thank you for helping improve Click Guardian! Please provide as much detail as possible to help us understand your idea.
+        Thank you for helping improve Click Guardian Ext! Please provide as much detail as possible to help us understand your idea.
   - type: textarea
     id: problem
     attributes:
