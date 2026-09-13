@@ -1,47 +1,27 @@
 # Build Scripts
 
-This directory contains build and development scripts for the Click Guardian project.
+The Windows build commands use `build.ps1` as their shared implementation.
 
 ## Quick Reference
 
 ```cmd
-# Development (quick build and run)
 scripts\dev.bat
-
-# Local GUI and development builds
 scripts\build.bat
-
-# Troubleshoot setup issues
+scripts\release-build.bat
 scripts\troubleshoot.bat
-
-# Cross-platform build (Linux/macOS)
-scripts/build.sh
-
-# release build(windows)
-scripts/release-build.bat
 ```
 
-## Documentation
+- `dev.bat` runs the application directly with `go run`.
+- `build.bat` creates `click-guardian.exe` and `click-guardian-dev.exe` with Windows icons and metadata.
+- `release-build.bat` creates versioned release packages through the same PowerShell builder.
+- `troubleshoot.bat` diagnoses Go and CGO setup problems.
+- `build.sh` is the legacy multi-platform build script; Windows release automation uses `build.ps1`.
 
-For complete build instructions, script details, manual build commands, and troubleshooting, see:
+Direct PowerShell usage:
 
-**📖 [Build Instructions](../docs/BUILD.md)**
+```powershell
+.\scripts\build.ps1 -Configuration Development
+.\scripts\build.ps1 -Configuration Release -Version 1.0.6
+```
 
-This document covers:
-
-- Detailed script descriptions and usage
-- Manual build commands for all platforms
-- Development workflow
-- Prerequisites and setup
-- Troubleshooting common build issues
-- Platform-specific notes
-
-## Scripts Overview
-
-- **`build.bat`** - Windows GUI (`click-guardian.exe`) and development console (`click-guardian-dev.exe`) builds
-- **`build.sh`** - Cross-platform build script
-- **`dev.bat`** - Quick development testing
-- **`troubleshoot.bat`** - Go/CGO setup diagnosis
-- **`release-build.bat`** - Production release build (windows)
-
-All scripts can be run from anywhere in the project directory.
+See [Build Instructions](../docs/BUILD.md) and [Release Build Guide](../docs/RELEASE_BUILD.md).

@@ -3,6 +3,7 @@ package version
 import (
 	"fmt"
 	"runtime"
+	"strings"
 	"time"
 )
 
@@ -48,7 +49,7 @@ func GetAppInfo() AppInfo {
 
 // GetVersionString returns a formatted version string
 func GetVersionString() string {
-	if Version == "dev" {
+	if strings.HasPrefix(Version, "dev") {
 		return fmt.Sprintf("%s (development build)", Version)
 	}
 	return Version

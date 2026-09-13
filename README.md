@@ -84,13 +84,13 @@ _Tip: Start with the default 50ms delay - it works well for most users._
 **Official releases with proper versioning, code signing, and Windows integration:**
 
 1. Go to [Releases](../../releases) page
-2. Download the latest portable version `click-guardian-v*.zip`
+2. Download the latest portable package `click-guardian-v*-windows-amd64-portable.zip`
 3. Extract and run `click-guardian.exe`
-4. Or you can download and install using the `msi` installer `click-guardian-installer.msi`
+4. Or install the versioned MSI package `click-guardian-v*-windows-amd64-installer.msi`
 
 ### Build from Source
 
-For development or custom builds, see [**Release Build Guide**](docs/RELEASE_BUILD.md) for professional builds with:
+Development and release builds use the same PowerShell build engine, which provides:
 
 - Proper versioning and metadata
 - Windows resources and icons
@@ -99,9 +99,9 @@ For development or custom builds, see [**Release Build Guide**](docs/RELEASE_BUI
 
 **Quick development build:**
 
-Run `scripts\build.bat`. It creates `dist\click-guardian.exe` for normal GUI use and `dist\click-guardian-dev.exe` with a console for development and debugging.
+Run `scripts\build.bat`. It tests the project, embeds the Windows icon and metadata, and creates `dist\click-guardian.exe` for normal GUI use plus `dist\click-guardian-dev.exe` for console debugging.
 
-For detailed build instructions, see the [**Build Instructions**](docs/BUILD.md) and [**Development Guide**](docs/DEVELOPMENT.md).
+Tagged releases use the same build path to create a portable ZIP, MSI, and checksum file before GitHub creates a draft release. See the [**Build Instructions**](docs/BUILD.md), [**Release Build Guide**](docs/RELEASE_BUILD.md), and [**Development Guide**](docs/DEVELOPMENT.md).
 
 ## Configuration
 

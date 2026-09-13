@@ -14,16 +14,11 @@ click-guardian/
 │   ├── scripts/
 │   │   ├── create-icon.ps1
 │   │   └── sign-code.bat
-│   ├── temp/
-│   │   ├── app.syso
-│   │   ├── click-guardian-v1.0.0-windows/
-│   │   │   ├── LICENSE.txt
-│   │   │   └── README.txt
-│   │   └── click-guardian-v1.0.1-windows/
+│   ├── temp/                    # Ephemeral build staging (git ignored)
 │   └── windows/
 │       ├── app-icon.ico
-│       ├── app-manifest.xml
-│       └── app.rc
+│       ├── app-manifest.xml.template
+│       └── app.rc.template
 ├── cmd/
 │   └── click-guardian/          # Main application entry point
 │       └── main.go
@@ -55,6 +50,7 @@ click-guardian/
 │       └── platform.go
 ├── scripts/                     # Build and development scripts
 │   ├── build.bat
+│   ├── build.ps1
 │   ├── build.sh
 │   ├── dev.bat
 │   ├── release-build.bat
@@ -145,8 +141,8 @@ If you encounter build issues, ensure you are using the **MinGW 64-bit** termina
    # Local GUI and development builds
    scripts\build.bat
 
-   # Production build
-   scripts\release-build.bat
+   # Versioned release artifacts
+   scripts\release-build.bat -Version 1.0.6
    ```
 
 ### Manual Build Options
@@ -155,6 +151,8 @@ See `scripts\build.bat` for the build commands. It produces:
 
 - `dist\click-guardian.exe` — the normal GUI application without a console window.
 - `dist\click-guardian-dev.exe` — the development build with console/debug output.
+
+Both executables receive fresh Windows icon, manifest, and version resources from the shared `scripts\build.ps1` build engine. Generated resources are temporary and are removed after each build.
 
 ### Running the Application
 
@@ -280,6 +278,8 @@ fyne bundle -pkg resources -o internal/gui/resources/trayicon_resource.go assets
 ### Build Scripts
 
 - `scripts/build.bat` - Windows GUI and development console builds
+- `scripts/build.ps1` - Shared development, CI, and release build engine
 - `scripts/dev.bat` - Development build and run
+- `scripts/release-build.bat` - Compatibility wrapper for versioned releases
 - `scripts/troubleshoot.bat` - VSCode/Go environment diagnosis
 - `scripts/build.sh` - Cross-platform build script (future)

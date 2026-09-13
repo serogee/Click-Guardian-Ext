@@ -1,191 +1,160 @@
-# Click Guardian - Build Instructions
+# Click Guardian Build Instructions
 
-## Quick Start
+## Requirements
 
-### Windows
+Windows builds require:
+
+- Go 1.24 or later.
+- A CGO-compatible GCC toolchain.
+- GNU `windres` from the same MinGW toolchain.
+- PowerShell 5.1 or later.
+
+Release MSI creation also requires WiX Toolset and `go-msi`. Code signing is optional and requires `signtool` and a signing certificate.
+
+## Development Commands
+
+For the fastest edit-and-run loop:
 
 ```cmd
-# Quick development build and run
 scripts\dev.bat
+```
 
-# Local GUI and development builds
+This uses `go run`. The program contains its Fyne window and tray icons, but it does not create a distributable Windows executable.
+
+To build local executables:
+
+```cmd
 scripts\build.bat
 ```
 
-### Linux/macOS
+The batch file is a wrapper for:
 
-```bash
-# Make executable (first time only)
-chmod +x scripts/build.sh
-
-# Build for all platforms
-./scripts/build.sh
+```powershell
+.\scripts\build.ps1 -Configuration Development -Architecture amd64
 ```
 
-## Build Scripts
+It runs the tests and creates:
 
-This project includes several build and development scripts in the `scripts/` directory:
+- `dist\click-guardian.exe` - Windows GUI build without a console window.
+- `dist\click-guardian-dev.exe` - Development build with console output.
 
-### `build.bat` (Windows)
+Both files contain the Windows Explorer icon, manifest, and file metadata. The development build has the product name `Click Guardian Dev` in Windows file properties.
 
-Main Windows build script that creates both GUI and console versions.
+## Release Command
 
-- Creates executables in `dist/` directory
-- Builds `click-guardian.exe` as the GUI version and `click-guardian-dev.exe` as the development console version
-- Handles build failures gracefully
-- Can be run from anywhere in the project
+Create local release artifacts with:
 
-### `build.sh` (Linux/macOS)
+```powershell
+.\scripts\build.ps1 -Configuration Release -Version 1.0.6 -Architecture amd64
+```
 
-Cross-platform build script for multiple platforms.
-
-- Requires bash shell
-- Builds for Windows, Linux, and macOS
-- Creates GUI and development console versions for Windows
-- Outputs with platform-specific naming convention
-
-### `dev.bat` (Windows)
-
-Development script for quick testing.
-
-- Runs the application directly without building
-- Useful for rapid development iteration
-- Automatically navigates to project root
-
-### `troubleshoot.bat` (Windows)
-
-Troubleshooting script for Go/CGO setup issues.
-
-- Tests CGO compilation
-- Verifies project builds
-- Cleans and refreshes dependencies
-- Helpful for VSCode setup problems
-
-### Script Usage
-
-All scripts automatically navigate to the project root directory, so they can be run from anywhere within the project:
+The compatibility wrapper reads `VERSION` from `build\build.conf` when `-Version` is omitted:
 
 ```cmd
-# From any directory in the project
-scripts\dev.bat
-scripts\build.bat
-scripts\troubleshoot.bat
+scripts\release-build.bat
 ```
 
-## Manual Build Commands
+A complete release creates:
 
-### Single Platform Build
+- `dist\click-guardian.exe`
+- `dist\click-guardian-v1.0.6-windows-amd64-portable.zip`
+- `dist\click-guardian-v1.0.6-windows-amd64-installer.msi`
+- `dist\SHA256SUMS.txt`
 
-```bash
-# Windows GUI version (recommended for end users)
-go build -ldflags "-s -w -H=windowsgui" -o dist/click-guardian.exe ./cmd/click-guardian
+The release does not include `click-guardian-dev.exe`.
 
-# Windows development console version (for debugging)
-go build -ldflags "-s -w" -o dist/click-guardian-dev.exe ./cmd/click-guardian
+## Build Options
 
-# Linux/macOS
-go build -ldflags "-s -w" -o dist/click-guardian ./cmd/click-guardian
+```text
+-Configuration Development|Release
+-Version <semantic-version>
+-Architecture amd64|386
+-SkipTests
+-SkipInstaller
+-SkipSigning
+-Clean
+-CI
 ```
 
-### Cross-Platform Build
+Examples:
 
-```bash
-# Windows GUI (64-bit)
-GOOS=windows GOARCH=amd64 go build -ldflags "-s -w -H=windowsgui" -o dist/click-guardian-windows-amd64.exe ./cmd/click-guardian
+```powershell
+# Rebuild only the two named development artifacts
+.\scripts\build.ps1 -Configuration Development -Clean
 
-# Windows development console (64-bit)
-GOOS=windows GOARCH=amd64 go build -ldflags "-s -w" -o dist/click-guardian-windows-amd64-dev.exe ./cmd/click-guardian
-
-# Linux (64-bit)
-GOOS=linux GOARCH=amd64 go build -ldflags "-s -w" -o dist/click-guardian-linux-amd64 ./cmd/click-guardian
-
-# macOS (Intel)
-GOOS=darwin GOARCH=amd64 go build -ldflags "-s -w" -o dist/click-guardian-darwin-amd64 ./cmd/click-guardian
-
-# macOS (Apple Silicon)
-GOOS=darwin GOARCH=arm64 go build -ldflags "-s -w" -o dist/click-guardian-darwin-arm64 ./cmd/click-guardian
+# Test release packaging without local MSI or signing tools
+.\scripts\build.ps1 -Configuration Release -Version 1.0.6 -SkipInstaller -SkipSigning
 ```
 
-## Build Output
+Tagged CI release builds cannot use `-SkipTests`.
 
-All builds output to the `dist/` directory (git-ignored).
+## Icons and Windows Resources
 
-### Naming Convention
+The application has three icon paths:
 
-- `click-guardian.exe` - Windows GUI version (no console, recommended)
-- `click-guardian-dev.exe` - Windows development version (shows console/debug output)
-- `click-guardian-windows-{arch}.exe` - Cross-platform script's Windows GUI build
-- `click-guardian-windows-{arch}-dev.exe` - Cross-platform script's Windows development console build
-- `click-guardian-{os}-{arch}` - Linux and macOS builds
+- Fyne embeds the application/window icon from `internal/gui/resources`.
+- The tray integration embeds its ICO resource from `internal/gui/resources`.
+- `windres` embeds `build/windows/app-icon.ico` into each Windows executable.
 
-## Development
+The shared build script renders these templates into an isolated directory under `build/temp`:
 
-### Prerequisites
+- `build/windows/app.rc.template`
+- `build/windows/app-manifest.xml.template`
 
-- **Go 1.24.1 or later**
-- **C compiler** (for CGO on Windows - typically MinGW or Visual Studio Build Tools)
-- **Git** (for cloning the repository)
+It then creates `cmd/click-guardian/click-guardian.syso` temporarily. Go includes that file automatically. The script removes it in a `finally` block, including after a failed build. Generated `.syso` files remain ignored by Git. Builds do not rely on an existing one because it may contain stale metadata. A later build also removes staging directories left by a forcibly terminated process.
 
-### Setup
+## Embedded Build Information
 
-```bash
-# Clone and setup
-git clone [repository-url]
-cd click-guardian
-go mod tidy
+The script passes the following values through Go linker flags:
+
+- `Version`
+- `GitCommit`
+- `BuildTime` in UTC
+- `BuildBy`
+
+Development builds use `dev+<short-commit>`. Release builds use the supplied semantic version.
+
+## Signing
+
+Set these environment variables before a release build:
+
+```powershell
+$env:SIGN_CERT_FILE = "C:\path\to\certificate.pfx"
+$env:SIGN_CERT_PASSWORD = "certificate password"
+$env:SIGN_TIMESTAMP_URL = "https://timestamp.example.com"
 ```
 
-### Development Workflow
+When `SIGN_CERT_FILE` is absent, the script reports that signing was skipped. When it is present, both the executable and MSI are signed and verified. Final checksums are generated after signing.
 
-```bash
-# Quick development testing (Windows)
-scripts\dev.bat
+## Build Safety
 
-# Or run manually (any platform)
-go run ./cmd/click-guardian
+The build process:
+
+- Stops on the first failed external command.
+- Does not edit `wix.json` or tracked Windows resource files.
+- Uses a temporary installer configuration with a stable upgrade code and deterministic version-specific product code.
+- Compiles each requested executable once.
+- Deletes only known output names when `-Clean` is used.
+- Copies artifacts to `dist` only after their build stage succeeds.
+
+## Continuous Integration
+
+The Windows build workflow calls the same PowerShell entry point:
+
+```powershell
+./scripts/build.ps1 -Configuration Development -Architecture amd64 -CI
 ```
 
-### Clean Build Artifacts
-
-```bash
-# Windows
-rmdir /s /q dist
-
-# Linux/macOS
-rm -rf dist
-```
+Pull requests and pushes to `main` run tests, build both development artifacts, validate their PE metadata, and upload them as workflow artifacts. This workflow has read-only repository permission and cannot create a release.
 
 ## Troubleshooting
 
-### Build Issues
+Confirm the required commands are available:
 
-**CGO compilation errors:**
-
-```bash
-# Run troubleshooting script (Windows)
-scripts\troubleshoot.bat
+```powershell
+go version
+gcc --version
+windres --version
 ```
 
-**Module issues:**
-
-```bash
-go clean -modcache
-go mod download
-go mod tidy
-```
-
-**VSCode setup issues:**
-See [VSCode Setup Guide](VSCODE_SETUP.md) for workspace configuration.
-
-### Platform-Specific Notes
-
-**Windows:**
-
-- CGO is required for Windows API integration
-- GUI version (`click-guardian.exe`) has no console window
-- Development version (`click-guardian-dev.exe`) shows console/debug output
-
-**Linux/macOS:**
-
-- Currently builds but mouse hook functionality is not implemented
-- Future releases will include X11/Wayland support
+If MSI creation tools are not installed, use `-SkipInstaller` for a local release test. Use `scripts\troubleshoot.bat` for CGO setup checks.

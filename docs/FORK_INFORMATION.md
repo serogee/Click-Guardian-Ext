@@ -65,6 +65,12 @@ The regular build scripts use the end-user name `click-guardian.exe` for the Win
 
 Existing administrator startup tasks that point to the former `click-guardian-gui.exe` name remain recognized so they can be repaired, replaced, or removed safely.
 
+### Reproducible build and release workflow
+
+Development, CI, and release builds now share `scripts/build.ps1`. It generates Windows icon, manifest, and version resources for each executable, validates the compiled PE metadata, and removes generated resources after the build. Development builds create the GUI and console-enabled executables, while releases distribute only the versioned GUI application.
+
+Release packaging no longer rewrites tracked resource, manifest, or installer configuration files. A tagged GitHub workflow runs the same release build used locally, produces a portable ZIP, MSI, and SHA-256 checksum file, and creates a draft GitHub Release for manual inspection before publication.
+
 ### Documentation and tests
 
 The README and user guide describe the new startup modes. Automated tests cover:
