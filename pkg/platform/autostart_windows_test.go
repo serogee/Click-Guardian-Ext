@@ -141,6 +141,68 @@ func TestIsClickGuardianCommand(t *testing.T) {
 	}
 }
 
+func TestRemoveAdministratorAutoStartLeavesForeignTaskAndClearsMarker(t *testing.T) {
+	deleteCalled := false
+	markerCleared := false
+
+	err := removeAdministratorAutoStart(
+		func() (*queriedTask, bool, error) {
+			return &queriedTask{Actions: taskActions{Exec: taskExecAction{
+				Command: `C:\Program Files\Another App\another-app.exe`,
+			}}}, true, nil
+		},
+		func() error {
+			deleteCalled = true
+			return nil
+		},
+		func() error {
+			markerCleared = true
+			return nil
+		},
+	)
+
+	if err != nil {
+		t.Fatalf("removeAdministratorAutoStart returned an error: %v", err)
+	}
+	if deleteCalled {
+		t.Error("foreign administrator task was deleted")
+	}
+	if !markerCleared {
+		t.Error("administrator startup marker was not cleared")
+	}
+}
+
+func TestRemoveAdministratorAutoStartDeletesOwnedTask(t *testing.T) {
+	deleteCalled := false
+	markerCleared := false
+
+	err := removeAdministratorAutoStart(
+		func() (*queriedTask, bool, error) {
+			return &queriedTask{Actions: taskActions{Exec: taskExecAction{
+				Command: `C:\Program Files\Click Guardian Ext\click-guardian-ext.exe`,
+			}}}, true, nil
+		},
+		func() error {
+			deleteCalled = true
+			return nil
+		},
+		func() error {
+			markerCleared = true
+			return nil
+		},
+	)
+
+	if err != nil {
+		t.Fatalf("removeAdministratorAutoStart returned an error: %v", err)
+	}
+	if !deleteCalled {
+		t.Error("owned administrator task was not deleted")
+	}
+	if !markerCleared {
+		t.Error("administrator startup marker was not cleared")
+	}
+}
+
 func TestAutoStartUsesForkSpecificIdentifiers(t *testing.T) {
 	if registryValue != "ClickGuardianExt" {
 		t.Fatalf("registryValue = %q, want ClickGuardianExt", registryValue)

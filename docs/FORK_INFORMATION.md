@@ -38,7 +38,7 @@ Administrator mode creates a task named `ClickGuardianExt Admin Startup` for the
 
 Windows requests administrator approval when the task is created or removed. Normal startup after sign-in does not show a UAC prompt.
 
-The application refuses to replace a task with the same name when that task does not point to a recognized Click Guardian Ext executable. This check reduces the risk of overwriting an unrelated task.
+The application refuses to replace a task with the same name when that task does not point to a recognized Click Guardian Ext executable. This check reduces the risk of overwriting an unrelated task. Selecting **Disabled** or **Standard** leaves such a foreign task untouched and clears Click Guardian Ext's own administrator-startup state.
 
 ### Startup task maintenance
 

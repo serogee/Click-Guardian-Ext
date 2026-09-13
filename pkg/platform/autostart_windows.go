@@ -318,17 +318,33 @@ func InstallAdministratorAutoStart() error {
 // RemoveAdministratorAutoStart removes only the Click Guardian Ext elevated task.
 // It is intended to be called only by the elevated helper process.
 func RemoveAdministratorAutoStart() error {
-	if task, exists, err := queryAdministratorTask(); err == nil && exists {
-		if !isClickGuardianCommand(task.Actions.Exec.Command) {
-			return ErrAutoStartConflict
-		}
-		output, deleteErr := runHiddenCommand(taskChangeTimeout, "schtasks.exe", "/Delete", "/TN", administratorTaskName, "/F")
-		if deleteErr != nil {
-			return fmt.Errorf("remove administrator startup task: %w (%s)", deleteErr, strings.TrimSpace(string(output)))
+	return removeAdministratorAutoStart(
+		queryAdministratorTask,
+		func() error {
+			output, err := runHiddenCommand(taskChangeTimeout, "schtasks.exe", "/Delete", "/TN", administratorTaskName, "/F")
+			if err != nil {
+				return fmt.Errorf("remove administrator startup task: %w (%s)", err, strings.TrimSpace(string(output)))
+			}
+			return nil
+		},
+		func() error { return setAdministratorMarker(false) },
+	)
+}
+
+func removeAdministratorAutoStart(
+	queryTask func() (*queriedTask, bool, error),
+	deleteTask func() error,
+	clearMarker func() error,
+) error {
+	if task, exists, err := queryTask(); err == nil && exists && isClickGuardianCommand(task.Actions.Exec.Command) {
+		if err := deleteTask(); err != nil {
+			return err
 		}
 	}
 
-	if err := setAdministratorMarker(false); err != nil {
+	// A foreign task with the same name must be left untouched. Clearing our
+	// local marker still lets Disabled (or Standard) recover from stale state.
+	if err := clearMarker(); err != nil {
 		return fmt.Errorf("clear administrator startup state: %w", err)
 	}
 	return nil
